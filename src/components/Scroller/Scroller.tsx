@@ -13,10 +13,10 @@ export interface IScrollPosition { top: number, left: number, ratioT: number, ra
 
 export const Scroller:React.ForwardRefExoticComponent<IScrollerProps & React.RefAttributes<HTMLDivElement|null>> = React.forwardRef<HTMLDivElement|null, IScrollerProps>((props:IScrollerProps, ref:React.ForwardedRef<HTMLDivElement | null>) => {
 
-    const { onCustomScroll, onScrollbarSizeChange, ...divProps } = props;
+    const { onCustomScroll, onScrollbarSizeChange, children, ...divProps } = props;
 
     const [wRef, wSize]        = useSize<HTMLDivElement>('client',[]);
-    const [cRef, cSize, cNode] = useSize<HTMLDivElement>('offset',[], props.children);
+    const [cRef, cSize, cNode] = useSize<HTMLDivElement>('offset',[], children);
     const [tRef, tSize]        = useSize<HTMLDivElement>('offset',[cSize.height, wSize.height]);
     const [lRef, lSize]        = useSize<HTMLDivElement>('offset',[cSize.width, wSize.width]);
     const [scroll, setScroll]  = React.useState<IScrollPosition>({ top: 0, left: 0, ratioT:0, ratioL:0 });
@@ -64,7 +64,7 @@ export const Scroller:React.ForwardRefExoticComponent<IScrollerProps & React.Ref
         return () => {
             wRef.current?.removeEventListener('wheel', onWheelEventHandler);
         };
-    }, [scroll,cSize,props.children]);
+    }, [scroll,cSize,children]);
 
     const updateTop = React.useCallback((deltaY: number) => {
         if(cSize.height<=wSize.height || !showT){ return; }
@@ -132,7 +132,7 @@ export const Scroller:React.ForwardRefExoticComponent<IScrollerProps & React.Ref
 
     return <div ref={pRef} {...divProps} onScroll={undefined} style={{...props.style}}>
 
-        <div ref={wRef} className={css.body} style={{width:`calc(100% - ${paddingRight}px)`,height:`calc(100% - ${paddingBottom}px)`}}>
+        <div ref={wRef} className={`${css.body} ${css.hideScrollbar}`} style={{width:`calc(100% - ${paddingRight}px)`,height:`calc(100% - ${paddingBottom}px)`}}>
             {cNode}
         </div>
 

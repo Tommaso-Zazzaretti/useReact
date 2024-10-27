@@ -27,11 +27,15 @@
     width:100%;    /* OVERRIDED AT RUNTIME */
     height: 100%;  /* OVERRIDED AT RUNTIME */
     overflow: auto;
+}
+
+
+.hideScrollbar {
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none;  /* IE 10+ */
 }
 
-.body::-webkit-scrollbar {
+.hideScrollbar::-webkit-scrollbar {
     background: transparent; /* Chrome/Safari/Webkit */
     width: 0px;
-  }
+}
