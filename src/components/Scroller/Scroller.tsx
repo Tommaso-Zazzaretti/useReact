@@ -15,8 +15,8 @@ export const Scroller:React.ForwardRefExoticComponent<IScrollerProps & React.Ref
 
     const { onCustomScroll, onScrollbarsPaddingChange, children, ...divProps } = props;
 
-    const [wRef, wSize]        = useSize<HTMLDivElement>('client',[]);
-    const [cRef, cSize, cNode] = useSize<HTMLDivElement>('offset',[], children);
+    const [wRef, wSize]        = useSize<HTMLDivElement>('client');
+    const [cRef, cSize, cNode] = useSize<HTMLDivElement>('offset', children);
     const [scroll,setScroll]   = React.useState<IScrollPosition>({ top: 0, left: 0, ratioT:0, ratioL:0 });
     const [show  , setShow]    = React.useState<{top:boolean, left: boolean}>({top: false, left: false});
     const tRef = React.useRef<HTMLDivElement|null>(null);

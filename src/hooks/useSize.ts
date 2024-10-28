@@ -2,7 +2,7 @@ import React from "react";
 
 export interface IViewport { width: number, height: number }
 
-export const useSize = <T extends HTMLElement>(type:'offset'|'client',deps: React.DependencyList,children?:React.ReactElement<any, string | React.JSXElementConstructor<T>>) => {
+export const useSize = <T extends HTMLElement>(type:'offset'|'client',children?:React.ReactElement<any, string | React.JSXElementConstructor<T>>) => {
     
     const ref = React.useRef<T|null>(null);
     const childrenWithRef = children===undefined ? undefined : React.cloneElement(children, {ref: ref})
