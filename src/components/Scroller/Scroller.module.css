@@ -51,4 +51,5 @@
     background-color: rgba(0, 0, 0, 0.2);
     max-height: minmax(0, 1fr);
     max-width : minmax(0, 1fr);
+    border-radius: 6px;
 }
