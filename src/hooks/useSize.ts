@@ -18,19 +18,22 @@ export const useSize = <T extends HTMLElement>(type:'offset'|'client',deps: Reac
         });
     },[type]);
 
+
     // After first rendering, setup current size and setup resize event handler
     React.useLayoutEffect(() => {
-        if(ref.current===null){ return; }
+        const elementRef = ref.current;
+        if(elementRef===null){ return; }
         updateSize();
         const resizeObserver = new ResizeObserver((entries:Array<ResizeObserverEntry>) => {
             updateSize();
         });
-        resizeObserver.observe(ref.current);
+        resizeObserver.observe(elementRef);
         return () => {
-            if(ref.current===null){ return; }
-           resizeObserver.unobserve(ref.current)
+            if(elementRef===null){ return; }
+           resizeObserver.unobserve(elementRef)
         }
-    }, [...deps,updateSize]);
+        // eslint-disable-next-line
+    }, [updateSize]);
 
     return [ref,size,childrenWithRef] as const;
 }
