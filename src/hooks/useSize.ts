@@ -1,4 +1,5 @@
 import React from "react";
+import useDebounce from "./useDebounce";
 
 export interface IViewport { width: number, height: number }
 
@@ -8,7 +9,8 @@ export const useSize = <T extends HTMLElement>(type:'offset'|'client',children?:
     const childrenWithRef = children===undefined ? undefined : React.cloneElement(children, {ref: ref})
     const [size,setSize]  = React.useState<IViewport>({width:0,height:0})
     
-    const updateSize = React.useCallback(()=>{
+    // eslint-disable-next-line
+    const updateSize = React.useCallback(useDebounce(()=>{
         if (ref.current===null) { return; }
         const height = type==='client' ? ref.current.clientHeight : ref.current.offsetHeight; 
         const width  = type==='client' ? ref.current.clientWidth  : ref.current.offsetWidth;
@@ -16,8 +18,7 @@ export const useSize = <T extends HTMLElement>(type:'offset'|'client',children?:
             if(prev.height===height && prev.width===width){ return prev; }
             return { height, width }
         });
-    },[type]);
-
+    },10),[type]);
 
     // After first rendering, setup current size and setup resize event handler
     React.useLayoutEffect(() => {

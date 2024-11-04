@@ -1,19 +1,18 @@
 import React from 'react';
 import css from './Scroller.module.css';
 import { useSize } from '../../hooks/useSize';
-import { useThrottle } from '../../hooks/useThrottle';
 
 export type IScrollerProps = Omit<React.HTMLAttributes<HTMLDivElement|null>, 'children'> & { 
     children: React.ReactElement<any, string | React.JSXElementConstructor<any>>,
     onCustomScroll?: (scroll:IScrollPosition) => void
-    onScrollbarsPaddingChange?: (right:number,bottom:number) => void
+    onScrollbarsShowHideChanges?: (right:number,bottom:number) => void
 }
 
 export interface IScrollPosition { top: number, left: number, ratioT: number, ratioL: number }
 
 export const Scroller:React.ForwardRefExoticComponent<IScrollerProps & React.RefAttributes<HTMLDivElement|null>> = React.forwardRef<HTMLDivElement|null, IScrollerProps>((props:IScrollerProps, ref:React.ForwardedRef<HTMLDivElement | null>) => {
 
-    const { onCustomScroll, onScrollbarsPaddingChange, children, ...divProps } = props;
+    const { onCustomScroll, onScrollbarsShowHideChanges, children, ...divProps } = props;
 
     const [wRef, wSize]        = useSize<HTMLDivElement>('client');
     const [cRef, cSize, cNode] = useSize<HTMLDivElement>('offset', children);
@@ -26,9 +25,9 @@ export const Scroller:React.ForwardRefExoticComponent<IScrollerProps & React.Ref
     React.useImperativeHandle<HTMLDivElement|null,HTMLDivElement|null>(ref, () => wRef.current);
 
     // eslint-disable-next-line 
-    const emitScroll = React.useCallback(useThrottle<(s:IScrollPosition)=>void,void>((scroll:IScrollPosition)=>{
+    const emitScroll = React.useCallback((scroll:IScrollPosition)=>{
         onCustomScroll?.(scroll);
-    },1),[onCustomScroll])
+    },[onCustomScroll])
 
      // On Scroll Update => Emit Scroll Event
      React.useEffect(() => {
@@ -42,8 +41,8 @@ export const Scroller:React.ForwardRefExoticComponent<IScrollerProps & React.Ref
     React.useEffect(()=>{
         const right = show.top && tRef.current!==null   ? tRef.current.offsetWidth : 0;
         const bottom = show.left && lRef.current!==null ? lRef.current.offsetHeight : 0
-        onScrollbarsPaddingChange?.(right,bottom);
-    },[onScrollbarsPaddingChange,show.top,show.left])
+        onScrollbarsShowHideChanges?.(right,bottom);
+    },[onScrollbarsShowHideChanges,show.top,show.left])
 
     // On Wrapper/Content Resizing => Recalculate topPosition respect Ratio
     React.useEffect(() => {
@@ -117,7 +116,7 @@ export const Scroller:React.ForwardRefExoticComponent<IScrollerProps & React.Ref
     },[handleMouseDown]);
 
     const onWheelEventHandler = React.useCallback((event: WheelEvent) => {
-        const threshold = 2;
+        const threshold = 0;
         if (Math.abs(event.deltaX)< threshold && Math.abs(event.deltaY)<threshold) { 
             event.preventDefault(); 
             event.stopImmediatePropagation();
@@ -129,6 +128,7 @@ export const Scroller:React.ForwardRefExoticComponent<IScrollerProps & React.Ref
             event.preventDefault(); 
         }
         if (Math.abs(event.deltaX) < Math.abs(event.deltaY)) { updateTop(event.deltaY); } else { updateLeft(event.deltaX);}
+    // eslint-disable-next-line
     },[updateTop,updateLeft]);
 
     // In case of Content re-Rendering prevent default wheel event
@@ -173,13 +173,11 @@ export const Scroller:React.ForwardRefExoticComponent<IScrollerProps & React.Ref
             onMouseDown={onTopScrollbarMouseDownEventHandler}/>
         }
 
-        {show.left && (
-            <div ref={lRef}
+        {show.left && <div ref={lRef}
                 className={`${css.customScrollbar}`}
                 style={{ width, marginLeft }}
-                onMouseDown={onLeftScrollbarMouseDownEventHandler}
-            />
-        )}
+                onMouseDown={onLeftScrollbarMouseDownEventHandler}/>
+        }
     </div>
 });
 
