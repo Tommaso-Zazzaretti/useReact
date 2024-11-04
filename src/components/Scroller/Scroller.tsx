@@ -117,11 +117,18 @@ export const Scroller:React.ForwardRefExoticComponent<IScrollerProps & React.Ref
     },[handleMouseDown]);
 
     const onWheelEventHandler = React.useCallback((event: WheelEvent) => {
-        event.preventDefault(); 
-        event.stopImmediatePropagation();
-        event.stopPropagation();
-        if(Math.abs(event.deltaX)<2 &&  Math.abs(event.deltaY)<2){ return; }
-        if(Math.abs(event.deltaX) < Math.abs(event.deltaY)){ updateTop(event.deltaY); } else { updateLeft(event.deltaX); }
+        const threshold = 2;
+        if (Math.abs(event.deltaX)< threshold && Math.abs(event.deltaY)<threshold) { 
+            event.preventDefault(); 
+            event.stopImmediatePropagation();
+            event.stopPropagation();
+            return;
+        }
+        if(wRef.current===null || cRef.current===null){return; }
+        if(event.target===cRef.current || event.target===wRef.current){ 
+            event.preventDefault(); 
+        }
+        if (Math.abs(event.deltaX) < Math.abs(event.deltaY)) { updateTop(event.deltaY); } else { updateLeft(event.deltaX);}
     },[updateTop,updateLeft]);
 
     // In case of Content re-Rendering prevent default wheel event
