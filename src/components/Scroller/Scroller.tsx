@@ -116,14 +116,7 @@ export const Scroller:React.ForwardRefExoticComponent<IScrollerProps & React.Ref
     },[handleMouseDown]);
 
     const onWheelEventHandler = React.useCallback((event: WheelEvent) => {
-        const threshold = 0;
-        if (Math.abs(event.deltaX)< threshold && Math.abs(event.deltaY)<threshold) { 
-            event.preventDefault(); 
-            event.stopImmediatePropagation();
-            event.stopPropagation();
-            return;
-        }
-        if(wRef.current===null || cRef.current===null){return; }
+        if(wRef.current===null || cRef.current===null){ return; }
         if(event.target===cRef.current || event.target===wRef.current){ 
             event.preventDefault(); 
         }
