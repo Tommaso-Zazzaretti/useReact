@@ -1,6 +1,6 @@
 import React from 'react';
 
-function useDebounce<T extends (...args: any[]) => void>(callback: T, delay: number) {
+function useDebouncedCallback<T extends (...args: any[]) => void>(callback: T, delay: number) {
 
     const timerId = React.useRef<number|null>(null);
 
@@ -20,4 +20,4 @@ function useDebounce<T extends (...args: any[]) => void>(callback: T, delay: num
     return debouncedCallback;
 }
 
-export default useDebounce;
+export default useDebouncedCallback;
