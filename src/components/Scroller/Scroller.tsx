@@ -12,7 +12,7 @@ import { useResizeObserver } from '../../hooks/useResizeObserver';
 * see the example in the examples folder
 */
 
-/* A children must be provided */
+/* A children must be provided, onScroll event has a different function signature */
 export type IScrollerProps = Omit<React.HTMLAttributes<HTMLDivElement|null>, 'children'|'onScroll'> & { 
     children: React.ReactElement<any, string | React.JSXElementConstructor<any>>,
     onScroll?: (top:number,left:number,scrollerRef:HTMLDivElement,contentRef:HTMLDivElement,wrapperRef:HTMLDivElement) => void
