@@ -13,12 +13,12 @@ import { useResizeObserver } from '../../hooks/useResizeObserver';
 */
 
 /* A children must be provided, onScroll event has a different function signature */
-export type IScrollerProps = Omit<React.HTMLAttributes<HTMLDivElement|null>, 'children'|'onScroll'> & { 
-    children: React.ReactElement<any, string | React.JSXElementConstructor<any>>,
+export type IScrollerProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'children'|'onScroll'> & { 
+    children: React.ReactElement<any,string|React.JSXElementConstructor<any>>,
     onScroll?: (top:number,left:number,scrollerRef:HTMLDivElement,contentRef:HTMLDivElement,wrapperRef:HTMLDivElement) => void
 }
 
-export const Scroller:React.ForwardRefExoticComponent<IScrollerProps & React.RefAttributes<HTMLDivElement|null>> = React.forwardRef<HTMLDivElement|null, IScrollerProps>((props:IScrollerProps, ref:React.ForwardedRef<HTMLDivElement|null>) => {
+export const Scroller:React.ForwardRefExoticComponent<IScrollerProps & React.RefAttributes<HTMLDivElement|null>> = React.forwardRef<HTMLDivElement|null,IScrollerProps>((props:IScrollerProps,ref:React.ForwardedRef<HTMLDivElement|null>) => {
 
     const { onScroll, children, ...divProps } = props;
 
@@ -31,7 +31,7 @@ export const Scroller:React.ForwardRefExoticComponent<IScrollerProps & React.Ref
       return sRef.current; 
     });
 
-    const onWrapperScrollEventHandler = React.useCallback((event: React.UIEvent<HTMLDivElement, UIEvent>) => {
+    const onWrapperScrollEventHandler = React.useCallback((event: React.UIEvent<HTMLDivElement,UIEvent>) => {
       if(sRef.current===null){ return; }
       if(cRef.current===null){ return; }
       if(wRef.current===null){ return; }
