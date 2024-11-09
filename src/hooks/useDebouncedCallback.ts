@@ -1,14 +1,26 @@
 import React from 'react';
 
-function useDebouncedCallback<T extends (...args: any[]) => void>(callback: T, delay: number) {
+const useDebouncedCallback = <T extends (...args: Array<unknown>) => void>(callback: T, delay: number) => {
 
+    const callbackRef = React.useRef<T>(callback);
     const timerId = React.useRef<number|null>(null);
 
-    const debouncedCallback = React.useCallback((...args: Parameters<T>) => {
-        if (timerId.current) { window.clearTimeout(timerId.current); }
-        timerId.current = window.setTimeout(() => { callback(...args); }, delay);
-    }, [callback, delay]);
+    // [1] Update callback Ref onChange
+    React.useEffect(() => { 
+        callbackRef.current = callback; 
+    }, [callback]);
 
+    // [2] Define the exposed callback 
+    const debouncedCallback = React.useCallback((...args: Parameters<T>) => {
+        if (timerId.current) {
+            clearTimeout(timerId.current);
+        }
+        timerId.current = window.setTimeout(() => {
+            callbackRef.current(...args);
+        }, delay);
+    }, [delay]);
+
+    // Stop pending timer during unmount
     React.useEffect(() => {
         return () => {
             if (timerId.current) {

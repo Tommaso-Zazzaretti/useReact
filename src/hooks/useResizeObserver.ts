@@ -10,7 +10,7 @@ export const useResizeObserver = <T extends HTMLElement>(type:'offset'|'client',
     const [size,setSize]  = React.useState<IViewport>({width:0,height:0})
     
     // eslint-disable-next-line
-    const updateSize = React.useCallback(useDebouncedCallback(()=>{
+    const updateSize = React.useCallback(useDebouncedCallback<()=>void>(()=>{
         if (ref.current===null) { return; }
         const height = type==='client' ? ref.current.clientHeight : ref.current.offsetHeight; 
         const width  = type==='client' ? ref.current.clientWidth  : ref.current.offsetWidth;
