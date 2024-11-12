@@ -62,32 +62,25 @@ const Splitter:React.ForwardRefExoticComponent<ISplitterProps & React.RefAttribu
 
     // Dynamic Styles
 
-    const wrapperStyle:React.CSSProperties = React.useMemo(()=>{ 
-        return {
-            ...divProps.style ?? {},
-            flexDirection
-        } as React.CSSProperties
+    const wrapperStyle:React.CSSProperties = React.useMemo(():React.CSSProperties=>{ 
+        return { ...divProps.style ?? {}, flexDirection }
     },[divProps.style,flexDirection]);
 
-    const separatorStyle:React.CSSProperties = React.useMemo(()=>{ 
+    const separatorStyle:React.CSSProperties = React.useMemo(():React.CSSProperties=>{ 
         const size = `${separatorSizePx}px`
         return flexDirection==='row' 
-            ? { width : size, minWidth : size, maxWidth : size } as React.CSSProperties
-            : { height: size, minHeight: size, maxHeight: size } as React.CSSProperties
+            ? { width : size, minWidth : size, maxWidth : size, cursor: 'col-resize' } 
+            : { height: size, minHeight: size, maxHeight: size, cursor: 'row-resize' }
     },[separatorSizePx,flexDirection]);
 
-    const s1Style:React.CSSProperties = React.useMemo(()=>{ 
+    const s1Style:React.CSSProperties = React.useMemo(():React.CSSProperties=>{ 
         const flexBasis = `calc(${initialRatio}% - ${separatorSizePx / 2}px)`;
-        return flexDirection==='row' 
-            ? { flexBasis, minWidth : min1 } as React.CSSProperties
-            : { flexBasis, minHeight: min1 } as React.CSSProperties
+        return flexDirection==='row' ? { flexBasis, minWidth : min1 }: { flexBasis, minHeight: min1 }
     },[separatorSizePx,initialRatio,min1,flexDirection]);
 
-    const s2Style:React.CSSProperties = React.useMemo(()=>{ 
+    const s2Style:React.CSSProperties = React.useMemo(():React.CSSProperties=>{ 
         const flexBasis = `calc(${100 - initialRatio}% - ${separatorSizePx / 2}px)`;
-        return flexDirection==='row' 
-            ? { flexBasis, minWidth : min2 } as React.CSSProperties
-            : { flexBasis, minHeight: min2 } as React.CSSProperties
+        return flexDirection==='row' ? { flexBasis, minWidth : min2 } : { flexBasis, minHeight: min2 }
     },[separatorSizePx,initialRatio,min2,flexDirection]);
 
     return (

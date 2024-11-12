@@ -1,7 +1,9 @@
 import { configureStore, ThunkAction, Action } from '@reduxjs/toolkit';
+import AsyncTasksPipelineReducer from './reducers/AsyncTasksPipelineReducer';
 
 export const store = configureStore({
   reducer: {
+    asyncTasksState: AsyncTasksPipelineReducer
   },
 });
 

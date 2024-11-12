@@ -15,8 +15,8 @@ const App:React.FC<{}> = () => {
       </Scroller>
 
       <Splitter separatorSizePx={3} flexDirection="column" initialRatio={10} min1="20%" min2="10%">
-        <div>Right Top content</div>
-        <div>Right Bottom content</div>
+        <div style={{backgroundColor:'#EEEEFF', width:'100%', height:'100%'}}>Right Top content</div>
+        <div style={{backgroundColor:'#FFFFDD', width:'100%', height:'100%'}}>Right Bottom content</div>
       </Splitter>
     </Splitter>
   )
