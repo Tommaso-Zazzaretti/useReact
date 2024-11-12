@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React from 'react';
 import css from './Scroller.module.css';
 import { useResizeObserver } from '../../hooks/useResizeObserver';
 
@@ -14,7 +14,7 @@ import { useResizeObserver } from '../../hooks/useResizeObserver';
 
 /* A children must be provided, onScroll event has a different function signature */
 export type IScrollerProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'children'|'onScroll'> & { 
-    children: React.ReactElement<any,string|React.JSXElementConstructor<any>>,
+    children: React.ReactElement<unknown,string|React.JSXElementConstructor<unknown>>,
     onScroll?: (top:number,left:number,scrollerRef:HTMLDivElement,contentRef:HTMLDivElement,wrapperRef:HTMLDivElement) => void
 }
 
@@ -43,14 +43,14 @@ export const Scroller:React.ForwardRefExoticComponent<IScrollerProps & React.Ref
       // eslint-disable-next-line
     },[onScroll]);
 
-    return <Fragment>
-      <div ref={wRef} {...divProps} className={css.wrapper} style={{...props.style}} onScroll={onWrapperScrollEventHandler}>
+    return <React.Fragment>
+      <div ref={wRef} {...divProps} className={css.wrapper} onScroll={onWrapperScrollEventHandler}>
         <div className={css.overflowInvoker} style={{...cSize}}/>
         <div ref={sRef} className={css.contentWrapper}>
           {cNode}
         </div>
       </div>
-    </Fragment>
+    </React.Fragment>
 });
 
 export default Scroller;
