@@ -62,10 +62,14 @@ export enum ReducersActionsEnum {
     RESET = 'asyncTaskPipeline/reset',
     ASYNC_TASK1 = 'asyncTaskPipeline/asyncTask1',
     ASYNC_TASK2 = 'asyncTaskPipeline/asyncTask2',
+    MERGE_TASKS_RESULTS = 'asyncTaskPipeline/mergeTasksResults'
 }
+
+
 
 export const INIT  = createAction<void,string>(ReducersActionsEnum.INIT);
 export const RESET = createAction<void,string>(ReducersActionsEnum.RESET);
+export const MERGE = createAction<{t1:Task1DtoResponse,t2:Task2DtoResponse},string>(ReducersActionsEnum.MERGE_TASKS_RESULTS)
 
     /*  +------------------------+
         | ASYNC THUNK DEFINITION |
@@ -95,11 +99,9 @@ const AsyncTask2:AsyncThunkPayloadCreator<Task2DtoResponse, CallData<Task2DtoReq
             // ...
             const asyncResult2 = await new Promise<Task2DtoResponse>((resolve)=>{ resolve({request2Id:0})})
             const asyncResult1 = thunkAPI.getState().asyncTasksState.asyncStep1Result;
-            if(asyncResult1===undefined){
-                throw new Error('Missing Async Task 1 result');
-            }
+            if(asyncResult1===undefined){ throw new Error('Missing Async Task 1 result'); }
             // Dispatch actions to other redux store slices.. other logic
-            // thunkAPI.dispatch<>()
+            thunkAPI.dispatch<PayloadAction<{t1:Task1DtoResponse, t2: Task2DtoResponse},string>>(MERGE({t1: asyncResult1, t2: asyncResult2}));
             return asyncResult2;
         } catch (error) {
             return thunkAPI.rejectWithValue('Failed Setup Task');
@@ -172,6 +174,13 @@ const asyncTask2ActionRejected:CaseReducer<IReducerState, PayloadAction<unknown,
         return state;
     }
 
+// [2] MERGE tasks results action
+const mergeTasksResults:CaseReducer<IReducerState, PayloadAction<{t1:Task1DtoResponse, t2: Task2DtoResponse},string>> = 
+    (state:IReducerState, action:PayloadAction<{t1:Task1DtoResponse, t2: Task2DtoResponse},string>) => {
+        state.finalResult = action.payload.t1.request1Id+' '+action.payload.t2.request2Id;
+        return state;
+    };
+
 /*  +----------------------------+
     | REDUCER BUILDER DEFINITION |
     +----------------------------+   */
@@ -187,6 +196,8 @@ const reducerBuilder = (builder:ActionReducerMapBuilder<IReducerState>) => {
     builder.addCase(ASYNC_TASK2.pending  , asyncTask2ActionPending);
     builder.addCase(ASYNC_TASK2.fulfilled, asyncTask2ActionFulfilled);
     builder.addCase(ASYNC_TASK2.rejected , asyncTask2ActionRejected);
+
+    builder.addCase(MERGE,mergeTasksResults)
 };
 
 const AsyncTasksPipelineReducer: ReducerWithInitialState<IReducerState> = 
