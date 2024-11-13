@@ -13,7 +13,7 @@ export type ISplitterProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'chi
 const Splitter:React.ForwardRefExoticComponent<ISplitterProps & React.RefAttributes<HTMLDivElement|null>> = React.forwardRef<HTMLDivElement|null,ISplitterProps>((props:ISplitterProps,ref:React.ForwardedRef<HTMLDivElement|null>) => {
     
     const { separatorSizePx, initialRatio, min1, min2, children,flexDirection, ...divProps } = props;
-    const wRef = React.useRef<HTMLDivElement|null>(null);
+    const wRef  = React.useRef<HTMLDivElement|null>(null);
     const s1Ref = React.useRef<HTMLDivElement|null>(null);
     const s2Ref = React.useRef<HTMLDivElement|null>(null);
     const isDragging = React.useRef(false);
@@ -29,10 +29,10 @@ const Splitter:React.ForwardRefExoticComponent<ISplitterProps & React.RefAttribu
             return; 
         }
         const DOMrect = wRef.current.getBoundingClientRect();
-        const size  = flexDirection==='row' ? DOMrect.width : DOMrect.height;
-        const delta = flexDirection==='row' ? DOMrect.left  : DOMrect.top
-        const pos   = flexDirection==='row' ? event.clientX : event.clientY; 
-        const newPixels  = Math.max(0, Math.min(pos - delta, size));
+        const size    = flexDirection==='row' ? DOMrect.width : DOMrect.height;
+        const current = flexDirection==='row' ? DOMrect.left  : DOMrect.top
+        const mouse   = flexDirection==='row' ? event.clientX : event.clientY; 
+        const newPixels  = Math.max(0, Math.min(mouse - current, size));
         const newPercent = (newPixels/size)*100;
         s1Ref.current.style.flexBasis = `calc(${newPercent}% - ${separatorSizePx / 2}px)`;
         s2Ref.current.style.flexBasis = `calc(${100 - newPercent}% - ${separatorSizePx / 2}px)`;
