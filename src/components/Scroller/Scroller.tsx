@@ -43,14 +43,14 @@ export const Scroller:React.ForwardRefExoticComponent<IScrollerProps & React.Ref
       // eslint-disable-next-line
     },[onScroll]);
 
-    return <React.Fragment>
+    return (
       <div ref={wRef} {...divProps} className={css.wrapper} onScroll={onWrapperScrollEventHandler}>
         <div className={css.overflowInvoker} style={{...cSize}}/>
         <div ref={sRef} className={css.contentWrapper}>
           {cNode}
         </div>
       </div>
-    </React.Fragment>
+    )
 });
 
 export default Scroller;
