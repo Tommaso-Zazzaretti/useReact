@@ -5,11 +5,38 @@
     padding: 0;
     border: 0;
     display: flex;
+    overflow: hidden;
 }
 
 .separator {
-    background-color: #888888;
+    position: relative;
+    background-color: rgb(230, 230, 230);
 }
+
+.separator::before {
+    content: '';
+    position: absolute;
+    top: -3px; 
+    bottom: -3px;
+    left: -3px;
+    right: -3px; 
+    cursor: inherit; 
+    z-index: 2;
+    background-color: transparent;
+    transition: background-color 0.3s ease-out;
+}
+
+.separator:hover::before {
+    background-color:indigo;
+}
+
+.separator:active::before {
+    background-color:indigo;
+}
+
+.hoverDisabled:hover::before {
+    background-color: transparent;
+  }
 
 .section {
     width: 100%;

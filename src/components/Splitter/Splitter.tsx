@@ -14,6 +14,7 @@ const Splitter:React.ForwardRefExoticComponent<ISplitterProps & React.RefAttribu
     
     const { separatorSizePx, initialRatio, min1, min2, children,flexDirection, ...divProps } = props;
     const wRef  = React.useRef<HTMLDivElement|null>(null);
+    const dRef  = React.useRef<HTMLDivElement|null>(null);
     const s1Ref = React.useRef<HTMLDivElement|null>(null);
     const s2Ref = React.useRef<HTMLDivElement|null>(null);
     const isDragging = React.useRef(false);
@@ -23,11 +24,24 @@ const Splitter:React.ForwardRefExoticComponent<ISplitterProps & React.RefAttribu
         return wRef.current; 
     });
 
-    const onSeparatorMouseMoveEventHandler = React.useCallback((event: MouseEvent) => {
+    // WINDOW DISABLE HOVER EVENTS 
+    const onWindowMouseDownEventHandler = React.useCallback((event: MouseEvent) => {
         event.preventDefault(); event.stopPropagation();
-        if (isDragging.current===null || wRef.current===null || s1Ref.current===null || s2Ref.current===null) { 
-            return; 
+        if (event.buttons === 1 && dRef.current!==event.target) {
+            dRef.current?.classList.add(css.hoverDisabled); 
         }
+    }, []);
+
+    const onWindowMouseUpEventHandler2 = React.useCallback((event: MouseEvent)=>{
+        event.preventDefault(); event.stopPropagation();
+        dRef.current?.classList.remove(css.hoverDisabled); 
+    },[]);
+
+    // WINDOW UPDATE SPLITTER SIZES EVENTS
+
+    const onWindowMouseMoveEventHandler = React.useCallback((event: MouseEvent) => {
+        event.preventDefault(); event.stopPropagation();
+        if (isDragging.current===null || !isDragging.current|| wRef.current===null || s1Ref.current===null || s2Ref.current===null) { return; }
         const DOMrect = wRef.current.getBoundingClientRect();
         const size    = flexDirection==='row' ? DOMrect.width : DOMrect.height;
         const current = flexDirection==='row' ? DOMrect.left  : DOMrect.top
@@ -38,27 +52,32 @@ const Splitter:React.ForwardRefExoticComponent<ISplitterProps & React.RefAttribu
         s2Ref.current.style.flexBasis = `calc(${100 - newPercent}% - ${separatorSizePx / 2}px)`;
     },[separatorSizePx,flexDirection]);
 
-    const onSeparatorMouseUpEventHandler = React.useCallback((event: MouseEvent) => {
+    const onWindowMouseUpEventHandler = React.useCallback((event: MouseEvent) => {
         event.preventDefault(); event.stopPropagation();
-        window.removeEventListener('mousemove',onSeparatorMouseMoveEventHandler);
-        window.removeEventListener( 'mouseup' ,onSeparatorMouseUpEventHandler);
+        window.removeEventListener('mousemove',onWindowMouseMoveEventHandler);
+        window.removeEventListener( 'mouseup' ,onWindowMouseUpEventHandler);
+        dRef.current?.classList.remove("active");
         isDragging.current = false;
-    },[onSeparatorMouseMoveEventHandler]);
+    },[onWindowMouseMoveEventHandler]);
 
-    const onSeparatorMouseDownEventHandler = React.useCallback((event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-        event.preventDefault(); event.stopPropagation();
-        window.addEventListener('mousemove',onSeparatorMouseMoveEventHandler);
-        window.addEventListener( 'mouseup' ,onSeparatorMouseUpEventHandler);
-        isDragging.current = true;
-    },[onSeparatorMouseMoveEventHandler,onSeparatorMouseUpEventHandler]);
-
-    // On Unmount
     React.useEffect(() => {
+        window.addEventListener("mousedown", onWindowMouseDownEventHandler);
+        window.addEventListener( "mouseup", onWindowMouseUpEventHandler2);
         return () => {
-            window.removeEventListener("mousemove", onSeparatorMouseMoveEventHandler);
-            window.removeEventListener( "mouseup" , onSeparatorMouseUpEventHandler);
+            window.removeEventListener("mousedown", onWindowMouseDownEventHandler);
+            window.removeEventListener("mousemove", onWindowMouseMoveEventHandler);
+            window.removeEventListener( "mouseup" , onWindowMouseUpEventHandler);
+            window.removeEventListener( "mouseup" , onWindowMouseUpEventHandler2);
         };
-    }, [onSeparatorMouseMoveEventHandler, onSeparatorMouseUpEventHandler]);
+    }, [onWindowMouseDownEventHandler,onWindowMouseMoveEventHandler,onWindowMouseUpEventHandler,onWindowMouseUpEventHandler2]);
+
+    // SEPARATOR EVENTS
+    const onSeparatorMouseDownEventHandler = React.useCallback((event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+        event.preventDefault(); 
+        window.addEventListener('mousemove',onWindowMouseMoveEventHandler);
+        window.addEventListener( 'mouseup' ,onWindowMouseUpEventHandler);
+        isDragging.current = true;
+    },[onWindowMouseMoveEventHandler,onWindowMouseUpEventHandler]);
 
     // Dynamic Styles
 
@@ -89,7 +108,7 @@ const Splitter:React.ForwardRefExoticComponent<ISplitterProps & React.RefAttribu
                 {children[0]}
             </div>
 
-            <div className={css.separator} style={separatorStyle} onMouseDown={onSeparatorMouseDownEventHandler}/>
+            <div ref={dRef} className={css.separator} style={separatorStyle} onMouseDown={onSeparatorMouseDownEventHandler}/>
 
             <div ref={s2Ref} className={css.section} style={s2Style}>
                 {children[1]}
