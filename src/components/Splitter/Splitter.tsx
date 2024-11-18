@@ -3,16 +3,18 @@ import css from './Splitter.module.css';
 
 export type ISplitterProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'children'> & { 
     children: [React.ReactElement<unknown,string|React.JSXElementConstructor<unknown>>,React.ReactElement<unknown,string|React.JSXElementConstructor<unknown>>]
-    separatorSizePx: number
-    initialRatio: number
+    dividerProps: ISplitterDividerProps
+    ratio: number
     flexDirection:'row'|'column'
     min1?:string|number
     min2?:string|number
 }
 
+export interface ISplitterDividerProps { size: number,className?: string }
+
 const Splitter:React.ForwardRefExoticComponent<ISplitterProps & React.RefAttributes<HTMLDivElement|null>> = React.forwardRef<HTMLDivElement|null,ISplitterProps>((props:ISplitterProps,ref:React.ForwardedRef<HTMLDivElement|null>) => {
     
-    const { separatorSizePx, initialRatio, min1, min2, children,flexDirection, ...divProps } = props;
+    const { dividerProps, ratio, min1, min2, children, flexDirection, ...divProps } = props;
     const wRef  = React.useRef<HTMLDivElement|null>(null);
     const dRef  = React.useRef<HTMLDivElement|null>(null);
     const s1Ref = React.useRef<HTMLDivElement|null>(null);
@@ -24,23 +26,31 @@ const Splitter:React.ForwardRefExoticComponent<ISplitterProps & React.RefAttribu
         return wRef.current; 
     });
 
+    const refineRatio = React.useCallback((ratio:number)=>{ return Math.max(0,Math.min(100,ratio)); },[]);
+    const refinePixel = React.useCallback((pixel:number)=>{ return Math.max(0,pixel); },[]);
+
+    // Safe Divider flex size (in case of user !important class)
+    React.useEffect(()=>{
+        if (dRef.current===null || dividerProps.className===undefined) { return; }
+        dRef.current.style.setProperty(flexDirection==='row'?'width':'height' , `${dividerProps.size}px`, 'important');
+        dRef.current.style.setProperty(flexDirection==='row'?'min-width':'min-height', `${dividerProps.size}px`, 'important');
+        dRef.current.style.setProperty(flexDirection==='row'?'max-width':'max-height', `${dividerProps.size}px`, 'important');
+    },[flexDirection,dividerProps])
+
     // WINDOW DISABLE HOVER EVENTS 
     const onWindowMouseDownEventHandler = React.useCallback((event: MouseEvent) => {
-        event.preventDefault(); event.stopPropagation();
         if (event.buttons === 1 && dRef.current!==event.target) {
             dRef.current?.classList.add(css.hoverDisabled); 
         }
     }, []);
 
     const onWindowMouseUpEventHandler2 = React.useCallback((event: MouseEvent)=>{
-        event.preventDefault(); event.stopPropagation();
         dRef.current?.classList.remove(css.hoverDisabled); 
     },[]);
 
     // WINDOW UPDATE SPLITTER SIZES EVENTS
 
     const onWindowMouseMoveEventHandler = React.useCallback((event: MouseEvent) => {
-        event.preventDefault(); event.stopPropagation();
         if (isDragging.current===null || !isDragging.current|| wRef.current===null || s1Ref.current===null || s2Ref.current===null) { return; }
         const DOMrect = wRef.current.getBoundingClientRect();
         const size    = flexDirection==='row' ? DOMrect.width : DOMrect.height;
@@ -48,9 +58,9 @@ const Splitter:React.ForwardRefExoticComponent<ISplitterProps & React.RefAttribu
         const mouse   = flexDirection==='row' ? event.clientX : event.clientY; 
         const newPixels  = Math.max(0, Math.min(mouse - current, size));
         const newPercent = (newPixels/size)*100;
-        s1Ref.current.style.flexBasis = `calc(${newPercent}% - ${separatorSizePx / 2}px)`;
-        s2Ref.current.style.flexBasis = `calc(${100 - newPercent}% - ${separatorSizePx / 2}px)`;
-    },[separatorSizePx,flexDirection]);
+        s1Ref.current.style.flexBasis = `calc(${newPercent}% - ${refinePixel(dividerProps.size)/2}px)`;
+        s2Ref.current.style.flexBasis = `calc(${100 - newPercent}% - ${refinePixel(dividerProps.size)/2}px)`;
+    },[dividerProps.size,flexDirection,refinePixel]);
 
     const onWindowMouseUpEventHandler = React.useCallback((event: MouseEvent) => {
         event.preventDefault(); event.stopPropagation();
@@ -85,34 +95,32 @@ const Splitter:React.ForwardRefExoticComponent<ISplitterProps & React.RefAttribu
         return { ...divProps.style ?? {}, flexDirection }
     },[divProps.style,flexDirection]);
 
-    const separatorStyle:React.CSSProperties = React.useMemo(():React.CSSProperties=>{ 
-        const size = `${separatorSizePx}px`
+    const dsStyle:React.CSSProperties = React.useMemo(():React.CSSProperties=>{ 
+        const size = `${refinePixel(dividerProps.size)}px`
         return flexDirection==='row' 
             ? { width : size, minWidth : size, maxWidth : size, cursor: 'col-resize' } 
             : { height: size, minHeight: size, maxHeight: size, cursor: 'row-resize' }
-    },[separatorSizePx,flexDirection]);
+    },[dividerProps.size,flexDirection,refinePixel]);
 
     const s1Style:React.CSSProperties = React.useMemo(():React.CSSProperties=>{ 
-        const flexBasis = `calc(${initialRatio}% - ${separatorSizePx / 2}px)`;
+        const flexBasis = `calc(${refineRatio(ratio)}% - ${refinePixel(dividerProps.size)/2}px)`;
         return flexDirection==='row' ? { flexBasis, minWidth : min1 }: { flexBasis, minHeight: min1 }
-    },[separatorSizePx,initialRatio,min1,flexDirection]);
+    },[dividerProps.size,ratio,min1,flexDirection,refineRatio,refinePixel]);
 
     const s2Style:React.CSSProperties = React.useMemo(():React.CSSProperties=>{ 
-        const flexBasis = `calc(${100 - initialRatio}% - ${separatorSizePx / 2}px)`;
+        const flexBasis = `calc(${100 - refineRatio(ratio)}% - ${refinePixel(dividerProps.size)/2}px)`;
         return flexDirection==='row' ? { flexBasis, minWidth : min2 } : { flexBasis, minHeight: min2 }
-    },[separatorSizePx,initialRatio,min2,flexDirection]);
+    },[dividerProps.size,ratio,min2,flexDirection,refineRatio,refinePixel]);
 
     return (
-        <div ref={wRef} {...divProps} style={wrapperStyle} className={`${divProps?.className ?? ''} ${css.wrapper}`}>
-            <div ref={s1Ref} className={css.section} style={s1Style}>
-                {children[0]}
-            </div>
+        <div ref={wRef} {...divProps} style={wrapperStyle} className={`${divProps?.className ?? ''} ${css.box} ${css.splitter}`}>
 
-            <div ref={dRef} className={css.separator} style={separatorStyle} onMouseDown={onSeparatorMouseDownEventHandler}/>
+            <div ref={s1Ref} style={s1Style} className={`${css.box} ${css.section}`}>{children[0]}</div>
 
-            <div ref={s2Ref} className={css.section} style={s2Style}>
-                {children[1]}
-            </div>
+            <div ref={dRef}  style={dsStyle} className={`${css.divider} ${dividerProps.className ?? ''}`} onMouseDown={onSeparatorMouseDownEventHandler}/>
+
+            <div ref={s2Ref} style={s2Style} className={`${css.box} ${css.section}`}>{children[1]}</div>
+            
         </div>
     );
 });
