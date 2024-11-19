@@ -29,13 +29,6 @@ const Splitter:React.ForwardRefExoticComponent<ISplitterProps & React.RefAttribu
     const refineRatio = React.useCallback((ratio:number)=>{ return Math.max(0,Math.min(100,ratio)); },[]);
     const refinePixel = React.useCallback((pixel:number)=>{ return Math.max(0,pixel); },[]);
 
-    // Safe Divider flex size (in case of user !important class)
-    React.useEffect(()=>{
-        if (dRef.current===null || dividerProps.className===undefined) { return; }
-        dRef.current.style.setProperty(flexDirection==='row'?'width':'height' , `${dividerProps.size}px`, 'important');
-        dRef.current.style.setProperty(flexDirection==='row'?'min-width':'min-height', `${dividerProps.size}px`, 'important');
-        dRef.current.style.setProperty(flexDirection==='row'?'max-width':'max-height', `${dividerProps.size}px`, 'important');
-    },[flexDirection,dividerProps])
 
     // WINDOW DISABLE HOVER EVENTS 
     const onWindowMouseDownEventHandler = React.useCallback((event: MouseEvent) => {
@@ -88,6 +81,15 @@ const Splitter:React.ForwardRefExoticComponent<ISplitterProps & React.RefAttribu
         window.addEventListener( 'mouseup' ,onWindowMouseUpEventHandler);
         isDragging.current = true;
     },[onWindowMouseMoveEventHandler,onWindowMouseUpEventHandler]);
+
+
+    // Safe Divider flex size (in case of user !important class override)
+    React.useEffect(()=>{
+        if (dRef.current===null || dividerProps.className===undefined) { return; }
+        dRef.current.style.setProperty(flexDirection==='row'?'width':'height' , `${dividerProps.size}px`, 'important');
+        dRef.current.style.setProperty(flexDirection==='row'?'min-width':'min-height', `${dividerProps.size}px`, 'important');
+        dRef.current.style.setProperty(flexDirection==='row'?'max-width':'max-height', `${dividerProps.size}px`, 'important');
+    },[flexDirection,dividerProps])
 
     // Dynamic Styles
 
