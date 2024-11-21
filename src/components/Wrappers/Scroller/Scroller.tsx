@@ -1,6 +1,6 @@
 import React from 'react';
 import css from './Scroller.module.css';
-import { useResizeObserver } from '../../hooks/useResizeObserver';
+import { useResizeObserver } from '../../../hooks/useResizeObserver';
 
 
 /*
@@ -44,9 +44,9 @@ export const Scroller:React.ForwardRefExoticComponent<IScrollerProps & React.Ref
     },[onScroll]);
 
     return (
-      <div ref={wRef} {...divProps} className={css.wrapper} onScroll={onWrapperScrollEventHandler}>
-        <div className={css.overflowInvoker} style={{...cSize}}/>
-        <div ref={sRef} className={css.contentWrapper}>
+      <div ref={wRef} {...divProps} className={`${css.box} ${css.wrapper}`} onScroll={onWrapperScrollEventHandler}>
+        <div className={`${css.box} ${css.overflowInvoker}`} style={{...cSize}}/>
+        <div ref={sRef} className={`${css.box} ${css.contentWrapper}`}>
           {cNode}
         </div>
       </div>

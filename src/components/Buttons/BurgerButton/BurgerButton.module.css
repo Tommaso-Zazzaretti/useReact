@@ -1,0 +1,62 @@
+.burgerButton {
+    margin:0;
+    border:0;
+    padding:0;
+    width:32px;
+    height: 27px;
+    background-color: #FFFFFF;
+    box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px, rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    flex-direction: column;
+}
+
+.burgerButton input[type='checkbox'] {
+    position: absolute; 
+    width   : inherit;  
+    height  : inherit;  
+    cursor  : pointer;  
+    margin  : 0;        
+    padding : 0;        
+    border  : 0;       
+    opacity : 0;       
+    z-index : 5;        
+}
+
+/* Button inner lines span */
+.burgerButton span {
+    position        : relative;   
+    display         : block;      
+    width           : 80%;      
+    height          : 2px;       
+    background      : #005eff;  
+    border-radius   : 6px;        
+    opacity         : 1;          
+    z-index         : 4;         
+    transform-origin: center;  
+    transition: transform 0.2s, opacity 0.5s ease-out, width 0.2s;           
+}
+.burgerButton span:nth-last-child(3) { 
+    width: 40%;
+}
+.burgerButton span:nth-last-child(1) { 
+    width: 40%;
+}
+
+
+/* Hover Styles */
+.burgerButton:hover > span {
+    background-color: #ff5900;
+}
+
+/* Checked Styles */
+.burgerButton input:checked ~ span {
+    background-color: #005eff;
+    width: 40%;
+}
+.burgerButton:hover input:checked ~ span {
+    background-color: #ff5900;
+    width: 40%;
+}

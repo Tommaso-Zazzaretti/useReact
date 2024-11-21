@@ -1,31 +1,24 @@
-.wrapper {
+.box {
     width :100%;
     height: 100%;
     margin : 0;
     padding: 0;
     border : 0;
+}
+
+.wrapper {
     position:relative;
     overflow: auto;
 }
 
 .overflowInvoker {
-    margin :0;
-    padding: 0;
-    border : 0;
     overflow: hidden;
     position:absolute;
-    top:0;
-    left:0;
 }
 
 .contentWrapper {
-    margin :0;
-    padding: 0;
-    border : 0;
     overflow: hidden;
     position:sticky;
-    height: 100%;
-    width: 100%;
     top:0;
     left:0;
 }
