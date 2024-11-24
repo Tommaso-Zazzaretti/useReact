@@ -2,8 +2,8 @@
     margin:0;
     border:0;
     padding:0;
-    width:32px;
-    height: 30px;
+    width:27px;
+    height: 25px;
     background-color: #FFFFFF;
     box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px, rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;
     border-radius: 6px;
@@ -21,27 +21,25 @@
     margin  : 0;        
     padding : 0;        
     border  : 0;       
-    opacity : 0;       
-    z-index : 5;        
+    opacity : 0;         
 }
 
 /* Button inner lines span */
 .burgerButton span {
     position        : relative;   
     display         : block;      
-    width           : 80%;      
+    width           : 70%;      
     height          : 2px;       
     background      : #005eff;  
     border-radius   : 12px;        
-    opacity         : 1;          
-    z-index         : 4;         
+    opacity         : 1;           
     transform-origin: center;  
-    transition: transform 0.2s, opacity 0.5s ease-out, width 0.2s;           
+    transition: transform 0.2s, opacity 0.15s ease-in-out, width 0.2s;     
 }
-.burgerButton span:nth-last-child(3) { 
+.burgerButton span:nth-last-child(2) { 
     width: 40%;
 }
-.burgerButton span:nth-last-child(1) { 
+.burgerButton span:nth-last-child(4) { 
     width: 40%;
 }
 

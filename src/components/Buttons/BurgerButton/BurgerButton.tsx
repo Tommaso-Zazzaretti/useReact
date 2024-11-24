@@ -59,10 +59,10 @@ export const BurgerButton:React.ForwardRefExoticComponent<IBurgerButtonProps & R
     },[toggleParameters]);
     
     return <button ref={bRef} {...buttonProps} className={`${buttonProps.className ?? ''} ${css.burgerButton}`}>
-        <input type="checkbox" disabled={props.disabled} onChange={onBurgerButtonCheckboxChangeEventHandler}/>
         <span ref={s1Ref} style={span1Style}></span>
         <span ref={s2Ref} style={span2Style}></span>
         <span ref={s3Ref} style={span3Style}></span>
+        <input type="checkbox" disabled={props.disabled} onChange={onBurgerButtonCheckboxChangeEventHandler}/>
     </button>
 })
 

@@ -1,3 +1,7 @@
+.splitter {
+    height: calc(100% + 500px);
+
+}
 .divider {
     background-color:#DDDDDD;
 }

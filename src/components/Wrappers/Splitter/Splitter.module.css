@@ -30,7 +30,6 @@
     left: -2px;
     right: -2px; 
     cursor: inherit; 
-    z-index: 1;
     background-color: transparent;
     transition: background-color 0.2s ease-out;
 }

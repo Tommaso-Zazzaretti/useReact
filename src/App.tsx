@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import Scroller from './components/Wrappers/Scroller/Scroller';
 import Splitter from './components/Wrappers/Splitter/Splitter';
 import css from './App.module.css'
 import BurgerButton from './components/Buttons/BurgerButton/BurgerButton';
+import Navbar from './components/Presentational/Navbar/Navbar';
 
 const App:React.FC<{}> = () => {
 
@@ -11,8 +12,10 @@ const App:React.FC<{}> = () => {
   }, []);
 
 
-  return (
-    <Splitter dProps={{size:1, className: css.divider}} flexDirection="row" ratio={50} min1="30%" min2="10%">
+  return (<Fragment>
+    <Navbar style={{position:'relative', top:''}}/>
+    <Navbar/>
+    <Splitter dProps={{size:1, className: css.divider}} flexDirection="row" ratio={50} min1="30%" min2="10%" className={css.splitter}>
 
       <Scroller onScroll={onScrollEventHandler}>
         <div id="content" style={{width:'30000px', height: '30000px', backgroundColor:'#E1F2FB',  border:'2px solid blue', padding:'20px'}}>
@@ -26,6 +29,7 @@ const App:React.FC<{}> = () => {
       </Splitter>
 
     </Splitter>
+    </Fragment>
   )
 }
 
