@@ -41,7 +41,7 @@ export const BurgerButton:React.ForwardRefExoticComponent<IBurgerButtonProps & R
         if(!checked || s2Ref.current===null || bRef.current===null){ return undefined; }
         const { offsetWidth: W, offsetHeight: H } = bRef.current;
         const center = {x:W/2, y: H/2 }
-        const angle = Math.atan(H/W)*(180/Math.PI); // radiant => degrees
+        const angle = Math.atan(H/W)*(180/Math.PI) + 180; // radiant => degrees
         const translateY = center.y - (H/4) + (s2Ref.current.offsetHeight/4); // 3 div with space-evenly => H/4 (flex direction is column)
         return { angle,translateY };
     },[checked]);
@@ -51,7 +51,7 @@ export const BurgerButton:React.ForwardRefExoticComponent<IBurgerButtonProps & R
     },[toggleParameters]);
 
     const span2Style = React.useMemo<React.CSSProperties>(()=>{
-        return { opacity: toggleParameters!==undefined ? 0 : 1}
+        return { opacity: toggleParameters!==undefined ? 0 : 1, transform: toggleParameters!==undefined ? `rotate(-180deg)`: "none",width: toggleParameters!==undefined ? '0%' : undefined}
     },[toggleParameters]);
 
     const span3Style = React.useMemo<React.CSSProperties>(()=>{
