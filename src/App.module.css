@@ -2,18 +2,31 @@
     height: calc(100% + 500px);
 
 }
+
+
+
 .divider {
     background-color:#DDDDDD;
 }
-
 .divider:hover::before, .divider:active::before {
     background-color:rgb(104, 1, 231);
 }
 
-.burgerButton span{
-    background-color: rgb(104, 1, 231);
-}
 
+
+.burgerButton span{
+    background-color: rgb(104, 1, 231) !important;
+}
+/* Hover Styles */
+.burgerButton:hover > span {
+    background-color: #0a7b0c !important;
+}
+/* Checked Styles */
 .burgerButton input:checked ~ span {
     background-color: rgb(104, 1, 231);
+    width: 30%;
+}
+.burgerButton:hover input:checked ~ span {
+    background-color: #0a7b0c;
+    width: 10%;
 }

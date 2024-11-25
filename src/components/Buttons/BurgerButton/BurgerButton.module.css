@@ -21,7 +21,8 @@
     margin  : 0;        
     padding : 0;        
     border  : 0;       
-    opacity : 0;         
+    opacity : 0; 
+    z-index : 1;        
 }
 
 /* Button inner lines span */
@@ -36,10 +37,10 @@
     transform-origin: center;  
     transition: transform 0.3s, opacity 0.4s ease-in, width 0.3s;     
 }
-.burgerButton span:nth-last-child(2) { 
+.burgerButton span:nth-last-child(1) { 
     width: 40%;
 }
-.burgerButton span:nth-last-child(4) { 
+.burgerButton span:nth-last-child(3) { 
     width: 40%;
 }
 
@@ -52,9 +53,9 @@
 /* Checked Styles */
 .burgerButton input:checked ~ span {
     background-color: #005eff;
-    width: 40%;
+    width: 30%;
 }
 .burgerButton:hover input:checked ~ span {
     background-color: #ff5900;
-    width: 40%;
+    width: 30%;
 }

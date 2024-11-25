@@ -19,7 +19,7 @@ const App:React.FC<{}> = () => {
 
       <Scroller onScroll={onScrollEventHandler}>
         <div id="content" style={{width:'30000px', height: '30000px', backgroundColor:'#E1F2FB',  border:'2px solid blue', padding:'20px'}}>
-          <BurgerButton onToggle={(toggle)=>console.log(toggle)} className={css.burgerButton}/>
+          <BurgerButton rotation={0} className={css.burgerButton} onToggle={(toggle)=>console.log(toggle)}/>
         </div>
       </Scroller>
 
