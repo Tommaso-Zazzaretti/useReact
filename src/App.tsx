@@ -1,9 +1,9 @@
 import React, { Fragment } from 'react';
-import Scroller from './components/Wrappers/Scroller/Scroller';
-import Splitter from './components/Wrappers/Splitter/Splitter';
+import Scroller from './components/Scroller/Scroller';
+import Splitter from './components/Splitter/Splitter';
 import css from './App.module.css'
-import BurgerButton from './components/Buttons/BurgerButton/BurgerButton';
-import Navbar from './components/Presentational/Navbar/Navbar';
+import BurgerButton from './components/BurgerButton/BurgerButton';
+import Navbar from './components/Navbar/Navbar';
 
 const App:React.FC<{}> = () => {
 

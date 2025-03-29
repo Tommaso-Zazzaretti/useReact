@@ -1,6 +1,6 @@
 import React from 'react';
 import css from './Scroller.module.css';
-import { useResizeObserver } from '../../../hooks/useResizeObserver';
+import { useResizeObserver } from '../../hooks/useResizeObserver';
 
 
 /*
