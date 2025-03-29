@@ -13,7 +13,6 @@ const App:React.FC<{}> = () => {
 
 
   return (<Fragment>
-    <Navbar style={{position:'relative', top:''}}/>
     <Navbar/>
     <Splitter dProps={{size:1, className: css.divider}} flexDirection="row" ratio={50} min1="30%" min2="10%" className={css.splitter}>
 
