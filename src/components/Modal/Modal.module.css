@@ -18,7 +18,7 @@
     width: 100vw;
     height: 100vh;
     background: transparent; 
-    z-index: 1000000000000;
+    z-index: 100000000000;
 }
 
 .tabFocusSentinel {

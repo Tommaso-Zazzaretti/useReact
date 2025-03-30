@@ -11,39 +11,47 @@ export const Modal = (props: ModalProps) => {
 
     const { isOpen, onClose } = props;
 
+    const overlay   = React.useRef<HTMLDivElement>(null);
     const modalRef  = React.useRef<HTMLDivElement>(null);
     const outFocus  = React.useRef<HTMLElement|null>(null);
     const sentinel1 = React.useRef<HTMLDivElement|null>(null);
     const sentinel2 = React.useRef<HTMLDivElement|null>(null);
-  
-    // Restore out modal focus on unmount/close
-    React.useEffect(() => {
-        if(isOpen) {
-            outFocus.current = document.activeElement as HTMLElement;
-            sentinel1.current?.focus();
-        } else {
-            outFocus.current?.focus();
-        }
-    }, [isOpen]);
 
-    // Restore out modal focus on unmount/close
-    React.useEffect(() => {
-        return () => {
-            outFocus.current?.focus();
-        };
-    }, []);
-
+    const observeBackdropRemoval = React.useCallback(() => {
+        const observer = new MutationObserver((mutationsList) => {
+            mutationsList.forEach((mutation) => {
+                if (mutation.type === 'childList') {
+                mutation.removedNodes.forEach((removedNode) => {
+                    // Se il backdrop è stato rimosso
+                    if (removedNode === overlay.current) {
+                        document.body.style.pointerEvents = 'none'; // Disabilita pointer events
+                    }
+                });
+                }
+            });
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+        return () => observer.disconnect();
+    },[]);
 
     const tabKeyDownEventHandler = React.useCallback((e: KeyboardEvent) => {
         if (e.key !== "Tab") return;
-    
-        const focusable = getFocusableElements(modalRef.current!)
+        console.log(document.activeElement);
+        
+        const focusable = getFocusableElements(modalRef.current!);
+
         const focus1 = focusable[0] ?? sentinel1;
-        const focusN = focusable[focusable.length - 1] ?? sentinel1;
+        const focusN = focusable[focusable.length - 1] ?? sentinel2;
 
         const isFirst = document.activeElement === focus1 || document.activeElement === sentinel1.current;
         const isLast  = document.activeElement === focusN || document.activeElement === sentinel2.current;
 
+        if(document.activeElement===document.body || document.activeElement===null){
+            e.preventDefault();
+            const focus = e.shiftKey ? sentinel2 : sentinel1;
+            focus.current?.focus(); 
+            return; 
+        }
         if ((e.shiftKey && isFirst)) {
             e.preventDefault();
             focusN?.focus(); // Vai all'ultimo elemento focusabile
@@ -56,13 +64,65 @@ export const Modal = (props: ModalProps) => {
         }
     }, []);
   
+    // Restore out modal focus on unmount/close
+    React.useEffect(() => {
+        if(isOpen) {
+            outFocus.current = document.activeElement as HTMLElement;
+            sentinel1.current?.focus();
+        } else {
+            outFocus.current?.focus();
+            document.body.style.pointerEvents = '';
+        }
+
+        // Osserva il backdrop solo se la modale è aperta
+        if (isOpen) {
+            const cleanupObserver = observeBackdropRemoval();
+            return cleanupObserver;
+        }
+    }, [isOpen,observeBackdropRemoval]);
+
+    // Restore out modal focus on unmount/close
+    React.useEffect(() => {
+        return () => {
+            outFocus.current?.focus();
+        };
+    }, []);
+
+    // Window Focus
+    React.useEffect(() => {
+        let isShiftPressed = false;
+    
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Shift") { isShiftPressed = true; }
+        };
+        const handleKeyUp = (event: KeyboardEvent) => {
+            if (event.key === "Shift") { isShiftPressed = false; }
+        };
+        const restoreFocus = () => {
+            (isShiftPressed ? sentinel2 : sentinel1)?.current?.focus();
+        };
+    
+        window.addEventListener("keydown", handleKeyDown);
+        window.addEventListener("keyup", handleKeyUp);
+        window.addEventListener("focus", restoreFocus);
+    
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+            window.removeEventListener("keyup", handleKeyUp);
+            window.removeEventListener("focus", restoreFocus);
+        };
+    }, [isOpen]);
+
+  
     // Event listeners
     React.useEffect(() => {
         document.addEventListener("keydown", tabKeyDownEventHandler);
         return () => {
+            console.log('unmount')
             document.removeEventListener("keydown", tabKeyDownEventHandler);
         };
     }, [isOpen,tabKeyDownEventHandler]);
+
   
     if(!isOpen) {
         return <React.Fragment></React.Fragment>
@@ -71,8 +131,7 @@ export const Modal = (props: ModalProps) => {
     return (
         <React.Fragment>
             <div ref={sentinel1} tabIndex={isOpen ? 0 : -1} className={css.tabFocusSentinel} />
-            <div className={css.modalMouseSentinel} tabIndex={-1}>
-                <div className={css.modalOverlay} role="dialog" aria-modal="true" tabIndex={-1}>
+                <div ref={overlay} className={css.modalOverlay} role="dialog" aria-modal="true" tabIndex={-1}>
                     <div ref={modalRef} className={css.modalContent} tabIndex={-1}>
                         <h2>Modale</h2>
                         <p>Questo è un esempio di modale con trap focus.</p>
@@ -80,7 +139,6 @@ export const Modal = (props: ModalProps) => {
                         <button onClick={onClose}>Chiudi</button>
                     </div>
                 </div>
-            </div>
             <div ref={sentinel2} tabIndex={isOpen ? 0 : -1} className={css.tabFocusSentinel} />
         </React.Fragment>
     );
