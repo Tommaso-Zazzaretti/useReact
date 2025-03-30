@@ -2,14 +2,14 @@ import css from './Modal.module.css';
 import React from "react";
 
 type ModalProps = {
-    isOpen: boolean;
+    open: boolean;
     onClose: () => void;
 };
 
 
 export const Modal = (props: ModalProps) => {
 
-    const { isOpen, onClose } = props;
+    const { open, onClose } = props;
 
     const overlay    = React.useRef<HTMLDivElement>(null);
     const content    = React.useRef<HTMLDivElement>(null);
@@ -27,18 +27,18 @@ export const Modal = (props: ModalProps) => {
 
     // TRAP/UNTRAP FOCUS WHILE OPENING/CLOSING
     React.useEffect(() => {
-        if(isOpen) {
+        if(open) {
             outerFocus.current = document.activeElement as HTMLElement;
             sentinel1.current?.focus();
         } else {
             outerFocus.current?.focus();
         }
-    }, [isOpen]);
+    }, [open]);
 
 
     // OVERLAY REMOVAL
     React.useEffect(()=>{
-        if(!isOpen){ 
+        if(!open){ 
             document.body.style.pointerEvents = ''; 
             return; 
         }
@@ -63,16 +63,17 @@ export const Modal = (props: ModalProps) => {
         return () => {
             observer.disconnect();
         }
-    },[isOpen])
+    },[open])
 
   
     // TAB HANDLER
     React.useEffect(() => {
 
-        if(!isOpen){ return; }
+        if(!open){ return; }
 
         const tabKeyDownEventHandler = (event: KeyboardEvent) => {
             if (event.key !== "Tab") return;
+            console.log(document.activeElement);
             const focusable = getFocusableElements(content.current!);
             const focus1 = focusable[0] ?? sentinel1;
             const focusN = focusable[focusable.length - 1] ?? sentinel2;
@@ -102,11 +103,11 @@ export const Modal = (props: ModalProps) => {
         return () => {
             document.removeEventListener("keydown", tabKeyDownEventHandler);
         };
-    }, [isOpen]);
+    }, [open]);
 
     // WINDOW FOCUS
     React.useEffect(() => {
-        if(!isOpen){ return; }
+        if(!open){ return; }
         let shift = false;
         const handleKeyDown = (event: KeyboardEvent) => { if (event.key === "Shift") { shift = true; }};
         const handleKeyUp   = (event: KeyboardEvent) => { if (event.key === "Shift") { shift = false; } };
@@ -119,16 +120,16 @@ export const Modal = (props: ModalProps) => {
             window.removeEventListener("keyup", handleKeyUp);
             window.removeEventListener("focus", restoreFocus);
         };
-    }, [isOpen]);
+    }, [open]);
 
   
-    if(!isOpen) {
+    if(!open) {
         return <React.Fragment></React.Fragment>
     }
   
     return (
         <React.Fragment>
-            <div ref={sentinel1} tabIndex={isOpen ? 0 : -1} className={css.tabFocusSentinel} />
+            <div ref={sentinel1} tabIndex={open ? 0 : -1} className={css.tabFocusSentinel} />
                 <div ref={overlay} className={css.modalOverlay} role="dialog" aria-modal="true" tabIndex={-1}>
                     <div ref={content} className={css.modalContent} tabIndex={-1}>
                         <h2>Modale</h2>
@@ -137,7 +138,7 @@ export const Modal = (props: ModalProps) => {
                         <button onClick={onClose}>Chiudi</button>
                     </div>
                 </div>
-            <div ref={sentinel2} tabIndex={isOpen ? 0 : -1} className={css.tabFocusSentinel} />
+            <div ref={sentinel2} tabIndex={open ? 0 : -1} className={css.tabFocusSentinel} />
         </React.Fragment>
     );
   };

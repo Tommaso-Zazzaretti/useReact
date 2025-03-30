@@ -15,7 +15,7 @@ const App:React.FC<{}> = () => {
 
   return (<Fragment>
     <Navbar/>
-    <Modal isOpen={true} onClose={()=>{}}/>
+    <Modal open={true} onClose={()=>{}}/>
     <Splitter dProps={{size:1, className: css.divider}} flexDirection="row" ratio={50} min1="30%" min2="10%" className={css.splitter}>
 
       <Scroller onScroll={onScrollEventHandler}>
