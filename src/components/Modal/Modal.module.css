@@ -11,16 +11,6 @@
     z-index: 100000000000000;
 }
 
-.modalMouseSentinel {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: transparent; 
-    z-index: 100000000000;
-}
-
 .tabFocusSentinel {
     position: absolute;   
     width: 100vw;          

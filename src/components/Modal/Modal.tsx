@@ -11,117 +11,115 @@ export const Modal = (props: ModalProps) => {
 
     const { isOpen, onClose } = props;
 
-    const overlay   = React.useRef<HTMLDivElement>(null);
-    const modalRef  = React.useRef<HTMLDivElement>(null);
-    const outFocus  = React.useRef<HTMLElement|null>(null);
-    const sentinel1 = React.useRef<HTMLDivElement|null>(null);
-    const sentinel2 = React.useRef<HTMLDivElement|null>(null);
+    const overlay    = React.useRef<HTMLDivElement>(null);
+    const content    = React.useRef<HTMLDivElement>(null);
+    const sentinel1  = React.useRef<HTMLDivElement|null>(null);
+    const sentinel2  = React.useRef<HTMLDivElement|null>(null);
+    const outerFocus = React.useRef<HTMLElement|null>(null);
 
-    const observeBackdropRemoval = React.useCallback(() => {
-        const observer = new MutationObserver((mutationsList) => {
-            mutationsList.forEach((mutation) => {
-                if (mutation.type === 'childList') {
-                mutation.removedNodes.forEach((removedNode) => {
-                    // Se il backdrop è stato rimosso
-                    if (removedNode === overlay.current) {
-                        document.body.style.pointerEvents = 'none'; // Disabilita pointer events
-                    }
-                });
-                }
-            });
-        });
-        observer.observe(document.body, { childList: true, subtree: true });
-        return () => observer.disconnect();
-    },[]);
-
-    const tabKeyDownEventHandler = React.useCallback((e: KeyboardEvent) => {
-        if (e.key !== "Tab") return;
-        console.log(document.activeElement);
-        
-        const focusable = getFocusableElements(modalRef.current!);
-
-        const focus1 = focusable[0] ?? sentinel1;
-        const focusN = focusable[focusable.length - 1] ?? sentinel2;
-
-        const isFirst = document.activeElement === focus1 || document.activeElement === sentinel1.current;
-        const isLast  = document.activeElement === focusN || document.activeElement === sentinel2.current;
-
-        if(document.activeElement===document.body || document.activeElement===null){
-            e.preventDefault();
-            const focus = e.shiftKey ? sentinel2 : sentinel1;
-            focus.current?.focus(); 
-            return; 
-        }
-        if ((e.shiftKey && isFirst)) {
-            e.preventDefault();
-            focusN?.focus(); // Vai all'ultimo elemento focusabile
-            return;
-        }
-        if (!e.shiftKey && isLast) {
-            e.preventDefault();
-            focus1?.focus(); // Torna al primo elemento focusabile
-            return;
-        }
-    }, []);
-  
-    // Restore out modal focus on unmount/close
-    React.useEffect(() => {
-        if(isOpen) {
-            outFocus.current = document.activeElement as HTMLElement;
-            sentinel1.current?.focus();
-        } else {
-            outFocus.current?.focus();
-            document.body.style.pointerEvents = '';
-        }
-
-        // Osserva il backdrop solo se la modale è aperta
-        if (isOpen) {
-            const cleanupObserver = observeBackdropRemoval();
-            return cleanupObserver;
-        }
-    }, [isOpen,observeBackdropRemoval]);
-
-    // Restore out modal focus on unmount/close
+    // UNMOUNT => RESTORE 
     React.useEffect(() => {
         return () => {
-            outFocus.current?.focus();
+            outerFocus.current?.focus();
+            document.body.style.pointerEvents = ''; 
         };
     }, []);
 
-    // Window Focus
+    // TRAP/UNTRAP FOCUS WHILE OPENING/CLOSING
     React.useEffect(() => {
-        let isShiftPressed = false;
+        if(isOpen) {
+            outerFocus.current = document.activeElement as HTMLElement;
+            sentinel1.current?.focus();
+        } else {
+            outerFocus.current?.focus();
+        }
+    }, [isOpen]);
+
+
+    // OVERLAY REMOVAL
+    React.useEffect(()=>{
+        if(!isOpen){ 
+            document.body.style.pointerEvents = ''; 
+            return; 
+        }
+        const observeBackdropRemoval = () => {
+            const observer = new MutationObserver((mutationsList) => {
+                mutationsList.forEach((mutation) => {
+                    if (mutation.type === 'childList') {
+                    mutation.removedNodes.forEach((removedNode) => {
+                        // Se il backdrop è stato rimosso
+                        if (removedNode === overlay.current) {
+                            document.body.style.pointerEvents = 'none'; // Disabilita pointer events
+                        }
+                    });
+                    }
+                });
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+            return observer;
+        };
+
+        const observer = observeBackdropRemoval();
+        return () => {
+            observer.disconnect();
+        }
+    },[isOpen])
+
+  
+    // TAB HANDLER
+    React.useEffect(() => {
+
+        if(!isOpen){ return; }
+
+        const tabKeyDownEventHandler = (event: KeyboardEvent) => {
+            if (event.key !== "Tab") return;
+            const focusable = getFocusableElements(content.current!);
+            const focus1 = focusable[0] ?? sentinel1;
+            const focusN = focusable[focusable.length - 1] ?? sentinel2;
+
+            const isFirst = document.activeElement === focus1 || document.activeElement === sentinel1.current;
+            const isLast  = document.activeElement === focusN || document.activeElement === sentinel2.current;
     
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === "Shift") { isShiftPressed = true; }
+            if(document.activeElement===document.body || document.activeElement===null){
+                event.preventDefault();
+                const focus = event.shiftKey ? sentinel2 : sentinel1;
+                focus.current?.focus(); 
+                return; 
+            }
+            if ((event.shiftKey && isFirst)) {
+                event.preventDefault();
+                focusN?.focus(); // Vai all'ultimo elemento focusabile
+                return;
+            }
+            if (!event.shiftKey && isLast) {
+                event.preventDefault();
+                focus1?.focus(); // Torna al primo elemento focusabile
+                return;
+            }
+        }
+
+        document.addEventListener("keydown", tabKeyDownEventHandler);
+        return () => {
+            document.removeEventListener("keydown", tabKeyDownEventHandler);
         };
-        const handleKeyUp = (event: KeyboardEvent) => {
-            if (event.key === "Shift") { isShiftPressed = false; }
-        };
-        const restoreFocus = () => {
-            (isShiftPressed ? sentinel2 : sentinel1)?.current?.focus();
-        };
-    
+    }, [isOpen]);
+
+    // WINDOW FOCUS
+    React.useEffect(() => {
+        if(!isOpen){ return; }
+        let shift = false;
+        const handleKeyDown = (event: KeyboardEvent) => { if (event.key === "Shift") { shift = true; }};
+        const handleKeyUp   = (event: KeyboardEvent) => { if (event.key === "Shift") { shift = false; } };
+        const restoreFocus  = () => { (shift ? sentinel2 : sentinel1)?.current?.focus(); };
         window.addEventListener("keydown", handleKeyDown);
         window.addEventListener("keyup", handleKeyUp);
         window.addEventListener("focus", restoreFocus);
-    
         return () => {
             window.removeEventListener("keydown", handleKeyDown);
             window.removeEventListener("keyup", handleKeyUp);
             window.removeEventListener("focus", restoreFocus);
         };
     }, [isOpen]);
-
-  
-    // Event listeners
-    React.useEffect(() => {
-        document.addEventListener("keydown", tabKeyDownEventHandler);
-        return () => {
-            console.log('unmount')
-            document.removeEventListener("keydown", tabKeyDownEventHandler);
-        };
-    }, [isOpen,tabKeyDownEventHandler]);
 
   
     if(!isOpen) {
@@ -132,7 +130,7 @@ export const Modal = (props: ModalProps) => {
         <React.Fragment>
             <div ref={sentinel1} tabIndex={isOpen ? 0 : -1} className={css.tabFocusSentinel} />
                 <div ref={overlay} className={css.modalOverlay} role="dialog" aria-modal="true" tabIndex={-1}>
-                    <div ref={modalRef} className={css.modalContent} tabIndex={-1}>
+                    <div ref={content} className={css.modalContent} tabIndex={-1}>
                         <h2>Modale</h2>
                         <p>Questo è un esempio di modale con trap focus.</p>
                         <input type="text" placeholder="Campo di input" />
