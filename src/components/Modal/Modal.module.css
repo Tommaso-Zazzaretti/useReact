@@ -1,0 +1,40 @@
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5); 
+    z-index: 100000000000000;
+}
+
+.modalMouseSentinel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: transparent; 
+    z-index: 1000000000000;
+}
+
+.tabFocusSentinel {
+    position: absolute;   
+    width: 100vw;          
+    height: 0px;
+    top: -9999px;         
+    left: -9999px;
+    opacity: 0;           
+}
+  
+.modalContent {
+    background: white;
+    padding: 24px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    width: 400px; 
+    max-width: 90vw; 
+}

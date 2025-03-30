@@ -1,24 +1,24 @@
 import React from "react";
 import css from './Navbar.module.css';
 
-export type INavbarProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'children'> & { 
+export type INavbarProps = Omit<React.HTMLAttributes<HTMLElement|null>,'children'> & { 
     
 }
 
-const Navbar:React.ForwardRefExoticComponent<INavbarProps & React.RefAttributes<HTMLDivElement|null>> = React.forwardRef<HTMLDivElement|null,INavbarProps>((props:INavbarProps,ref:React.ForwardedRef<HTMLDivElement|null>) => {
+const Navbar:React.ForwardRefExoticComponent<INavbarProps & React.RefAttributes<HTMLElement|null>> = React.forwardRef<HTMLElement|null,INavbarProps>((props:INavbarProps,ref:React.ForwardedRef<HTMLElement|null>) => {
 
     const { ...divProps } = props;
-    const nRef = React.useRef<HTMLDivElement|null>(null);
+    const nRef = React.useRef<HTMLElement|null>(null);
 
     // Link Forwarded div Ref with real div Ref
-    React.useImperativeHandle<HTMLDivElement|null,HTMLDivElement|null>(ref, () => { 
+    React.useImperativeHandle<HTMLElement|null,HTMLElement|null>(ref, () => { 
         return nRef.current; 
     });
 
     return (
-        <div ref={nRef} {...divProps} className={`${divProps?.className ?? ''} ${css.navbar}`}>
+        <nav ref={nRef} {...divProps} className={`${divProps?.className ?? ''} ${css.navbar}`}>
 
-        </div>
+        </nav>
     )
 });
 

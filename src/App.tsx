@@ -4,6 +4,7 @@ import Splitter from './components/Splitter/Splitter';
 import css from './App.module.css'
 import BurgerButton from './components/BurgerButton/BurgerButton';
 import Navbar from './components/Navbar/Navbar';
+import { Modal } from './components/Modal/Modal';
 
 const App:React.FC<{}> = () => {
 
@@ -14,6 +15,7 @@ const App:React.FC<{}> = () => {
 
   return (<Fragment>
     <Navbar/>
+    <Modal isOpen={true} onClose={()=>{}}/>
     <Splitter dProps={{size:1, className: css.divider}} flexDirection="row" ratio={50} min1="30%" min2="10%" className={css.splitter}>
 
       <Scroller onScroll={onScrollEventHandler}>
