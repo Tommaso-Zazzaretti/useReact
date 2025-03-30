@@ -21,7 +21,7 @@ export const BurgerButton:React.ForwardRefExoticComponent<IBurgerButtonProps & R
 
     const [checked,setChecked] = React.useState<boolean>(false);
 
-    // Link Forwarded div Ref with real div Ref
+    // Link Forwarded button Ref with real button Ref
     React.useImperativeHandle<HTMLButtonElement|null,HTMLButtonElement|null>(ref, () => { 
       return bRef.current; 
     });
