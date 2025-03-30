@@ -41,7 +41,6 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
         }
     }, [open]);
 
-
     // OVERLAY REMOVAL
     React.useEffect(()=>{
         if(!open){ 
@@ -110,6 +109,23 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
             document.removeEventListener("keydown", tabKeyDownEventHandler);
         };
     }, [open]);
+
+    // ESC HANDLER
+    React.useEffect(() => {
+
+        if(!open){ return; }
+
+        const escapeKeyDownEventHandler = (event: KeyboardEvent) => {
+            if (event.key !== "Escape") return;
+            event.preventDefault();
+            onClose();
+        }
+
+        document.addEventListener("keydown", escapeKeyDownEventHandler);
+        return () => {
+            document.removeEventListener("keydown", escapeKeyDownEventHandler);
+        };
+    }, [open,onClose]);
 
     // WINDOW FOCUS
     React.useEffect(() => {

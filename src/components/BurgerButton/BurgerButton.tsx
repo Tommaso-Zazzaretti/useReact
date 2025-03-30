@@ -3,7 +3,7 @@ import css from "./BurgerButton.module.css";
 
 export interface IBurgerButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement|null>,'children'> {
     rotation:number,
-    toggle?:boolean
+    toggle:boolean
     onToggle?:(toggle:boolean)=>void;
 }
 
@@ -27,13 +27,12 @@ export const BurgerButton:React.ForwardRefExoticComponent<IBurgerButtonProps & R
     });
 
     React.useEffect(()=>{
-        setChecked(toggle ?? false);
+        setChecked(toggle);
     },[toggle])
 
 
     const onBurgerButtonCheckboxChangeEventHandler = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         const checked = event.target.checked;
-        setChecked(checked);  
         onToggle?.(checked);      
     },[onToggle])
 
@@ -62,7 +61,7 @@ export const BurgerButton:React.ForwardRefExoticComponent<IBurgerButtonProps & R
     },[toggleParameters,rotationOverhead]);
     
     return <button ref={bRef} {...buttonProps} className={`${buttonProps.className ?? ''} ${css.burgerButton}`}>
-        <input type="checkbox" disabled={props.disabled} onChange={onBurgerButtonCheckboxChangeEventHandler}/>
+        <input type="checkbox" checked={checked} disabled={props.disabled} onChange={onBurgerButtonCheckboxChangeEventHandler}/>
         <span ref={s1Ref} style={span1Style}></span>
         <span ref={s2Ref} style={span2Style}></span>
         <span ref={s3Ref} style={span3Style}></span>

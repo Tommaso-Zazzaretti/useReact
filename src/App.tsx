@@ -8,6 +8,7 @@ import { Modal } from './components/Modal/Modal';
 
 const App:React.FC<{}> = () => {
 
+  const [open,setOpen] = React.useState<boolean>(false);
   const onScrollEventHandler = React.useCallback((top: number, left: number, scrollerRef: HTMLDivElement) => {
     scrollerRef.scrollTo({top,left});
   }, []);
@@ -15,7 +16,7 @@ const App:React.FC<{}> = () => {
 
   return (<Fragment>
     <Navbar/>
-    <Modal open={true} onClose={()=>{}}>
+    <Modal open={open} onClose={()=>{setOpen(false);}}>
         <React.Fragment>
           <h2>Modale</h2>
           <p>Questo è un esempio di modale con trap focus.</p>
@@ -27,7 +28,7 @@ const App:React.FC<{}> = () => {
 
       <Scroller onScroll={onScrollEventHandler}>
         <div id="content" style={{width:'30000px', height: '30000px', backgroundColor:'#E1F2FB',  border:'2px solid blue', padding:'20px'}}>
-          <BurgerButton rotation={0} className={css.burgerButton} onToggle={(toggle)=>console.log(toggle)}/>
+          <BurgerButton rotation={0} className={css.burgerButton} toggle={open} onToggle={(toggle)=>setOpen(toggle)}/>
         </div>
       </Scroller>
 
