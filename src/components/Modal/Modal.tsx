@@ -20,7 +20,7 @@ export const Modal = (props: ModalProps) => {
     // UNMOUNT => RESTORE 
     React.useEffect(() => {
         return () => {
-            outerFocus.current?.focus();
+            outerFocus.current?.focus?.();
             document.body.style.pointerEvents = ''; 
         };
     }, []);
@@ -29,9 +29,9 @@ export const Modal = (props: ModalProps) => {
     React.useEffect(() => {
         if(open) {
             outerFocus.current = document.activeElement as HTMLElement;
-            sentinel1.current?.focus();
+            sentinel1.current?.focus?.();
         } else {
-            outerFocus.current?.focus();
+            outerFocus.current?.focus?.();
         }
     }, [open]);
 
@@ -84,17 +84,17 @@ export const Modal = (props: ModalProps) => {
             if(document.activeElement===document.body || document.activeElement===null){
                 event.preventDefault();
                 const focus = event.shiftKey ? sentinel2 : sentinel1;
-                focus.current?.focus(); 
+                focus.current?.focus?.(); 
                 return; 
             }
             if ((event.shiftKey && isFirst)) {
                 event.preventDefault();
-                focusN?.focus(); // Vai all'ultimo elemento focusabile
+                focusN?.focus?.(); // Vai all'ultimo elemento focusabile
                 return;
             }
             if (!event.shiftKey && isLast) {
                 event.preventDefault();
-                focus1?.focus(); // Torna al primo elemento focusabile
+                focus1?.focus?.(); // Torna al primo elemento focusabile
                 return;
             }
         }
@@ -111,7 +111,7 @@ export const Modal = (props: ModalProps) => {
         let shift = false;
         const handleKeyDown = (event: KeyboardEvent) => { if (event.key === "Shift") { shift = true; }};
         const handleKeyUp   = (event: KeyboardEvent) => { if (event.key === "Shift") { shift = false; } };
-        const restoreFocus  = () => { (shift ? sentinel2 : sentinel1)?.current?.focus(); };
+        const restoreFocus  = () => { (shift ? sentinel2 : sentinel1)?.current?.focus?.(); };
         window.addEventListener("keydown", handleKeyDown);
         window.addEventListener("keyup", handleKeyUp);
         window.addEventListener("focus", restoreFocus);
@@ -135,7 +135,7 @@ export const Modal = (props: ModalProps) => {
                         <h2>Modale</h2>
                         <p>Questo è un esempio di modale con trap focus.</p>
                         <input type="text" placeholder="Campo di input" />
-                        <button onClick={onClose}>Chiudi</button>
+                        <button onClick={onClose}>Chiudi</button> 
                     </div>
                 </div>
             <div ref={sentinel2} tabIndex={open ? 0 : -1} className={css.tabFocusSentinel} />
