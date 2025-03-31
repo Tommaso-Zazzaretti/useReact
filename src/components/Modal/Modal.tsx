@@ -52,9 +52,9 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
                 mutationsList.forEach((mutation) => {
                     if (mutation.type === 'childList') {
                     mutation.removedNodes.forEach((removedNode) => {
-                        // Se il backdrop è stato rimosso
+                        // Il backdrop is removed while modal is open, disable body pointer events
                         if (removedNode === overlay.current) {
-                            document.body.style.pointerEvents = 'none'; // Disabilita pointer events
+                            document.body.style.pointerEvents = 'none'; 
                         }
                     });
                     }
@@ -94,12 +94,12 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
             }
             if ((event.shiftKey && isFirst)) {
                 event.preventDefault();
-                focusN?.focus?.(); // Vai all'ultimo elemento focusabile
+                focusN?.focus?.(); // Go to Last
                 return;
             }
             if (!event.shiftKey && isLast) {
                 event.preventDefault();
-                focus1?.focus?.(); // Torna al primo elemento focusabile
+                focus1?.focus?.(); // Go to First
                 return;
             }
         }
