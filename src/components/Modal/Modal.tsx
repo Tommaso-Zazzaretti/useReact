@@ -3,7 +3,7 @@ import css from './Modal.module.css';
 import React from "react";
 
 export type IModalProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'children'> & { 
-    children: React.ReactElement<unknown,string|React.JSXElementConstructor<unknown>>
+    children: Array<React.ReactElement<unknown,string|React.JSXElementConstructor<unknown>>>
     open: boolean;
     msec?: number;
     onClose: () => void;
@@ -14,7 +14,7 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
     const { open, msec, onClose, children, ...modalProps } = props;
 
     // Active state to handle transient states during css transitions
-    const [active, setActive] = React.useState(open);
+    const [active, setActive] = React.useState<boolean>(open);
 
     const overlay    = React.useRef<HTMLDivElement>(null);
     const content    = React.useRef<HTMLDivElement>(null);

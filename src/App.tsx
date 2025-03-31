@@ -17,12 +17,11 @@ const App:React.FC<{}> = () => {
   return (<Fragment>
     <Navbar/>
     <Modal open={open} msec={350} onClose={()=>{setOpen(false);}}>
-        <React.Fragment>
+        
           <h2>Modale</h2>
           <p>Questo è un esempio di modale con trap focus.</p>
           <input type="text" placeholder="Campo di input" />
-          <button>Chiudi</button> 
-        </React.Fragment>
+          <button onClick={()=>{setOpen(false);}}>Chiudi</button> 
     </Modal>
     <Splitter dProps={{size:1, className: css.divider}} flexDirection="row" ratio={50} min1="30%" min2="10%" className={css.splitter}>
 
