@@ -16,7 +16,7 @@ const App:React.FC<{}> = () => {
 
   return (<Fragment>
     <Navbar/>
-    <Modal open={open} onClose={()=>{setOpen(false);}}>
+    <Modal open={open} msec={350} onClose={()=>{setOpen(false);}}>
         <React.Fragment>
           <h2>Modale</h2>
           <p>Questo è un esempio di modale con trap focus.</p>

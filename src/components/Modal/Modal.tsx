@@ -5,12 +5,16 @@ import React from "react";
 export type IModalProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'children'> & { 
     children: React.ReactElement<unknown,string|React.JSXElementConstructor<unknown>>
     open: boolean;
+    msec?: number;
     onClose: () => void;
 }
 
 export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttributes<HTMLDivElement|null>> = React.forwardRef<HTMLDivElement|null,IModalProps>((props:IModalProps,ref:React.ForwardedRef<HTMLDivElement|null>) => {
 
-    const { open, onClose, children, ...modalProps } = props;
+    const { open, msec, onClose, children, ...modalProps } = props;
+
+    // Active state to handle transient states during css transitions
+    const [active, setActive] = React.useState(open);
 
     const overlay    = React.useRef<HTMLDivElement>(null);
     const content    = React.useRef<HTMLDivElement>(null);
@@ -23,6 +27,18 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
         return content.current; 
     });
 
+    // Stretch active time in case of transitions (close)
+    React.useEffect(()=>{
+        let timeout: NodeJS.Timeout;
+        if (open) {
+            setActive(true);
+        } else {
+            timeout = setTimeout(() => setActive(false), msec ?? 0);
+        }
+        return () => clearTimeout(timeout); 
+    },[open,msec])
+    
+
     // UNMOUNT => RESTORE 
     React.useEffect(() => {
         return () => {
@@ -33,17 +49,17 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
 
     // TRAP/UNTRAP FOCUS WHILE OPENING/CLOSING
     React.useEffect(() => {
-        if(open) {
+        if(active) {
             outerFocus.current = document.activeElement as HTMLElement;
             sentinel1.current?.focus?.();
         } else {
             outerFocus.current?.focus?.();
         }
-    }, [open]);
+    }, [active]);
 
     // OVERLAY REMOVAL
     React.useEffect(()=>{
-        if(!open){ 
+        if(!active){ 
             document.body.style.pointerEvents = ''; 
             return; 
         }
@@ -68,13 +84,13 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
         return () => {
             observer.disconnect();
         }
-    },[open])
+    },[active])
 
   
     // TAB HANDLER
     React.useEffect(() => {
 
-        if(!open){ return; }
+        if(!active){ return; }
 
         const tabKeyDownEventHandler = (event: KeyboardEvent) => {
             if (event.key !== "Tab") return;
@@ -108,12 +124,12 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
         return () => {
             document.removeEventListener("keydown", tabKeyDownEventHandler);
         };
-    }, [open]);
+    }, [active]);
 
     // ESC HANDLER
     React.useEffect(() => {
 
-        if(!open){ return; }
+        if(!active){ return; }
 
         const escapeKeyDownEventHandler = (event: KeyboardEvent) => {
             if (event.key !== "Escape") return;
@@ -125,11 +141,11 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
         return () => {
             document.removeEventListener("keydown", escapeKeyDownEventHandler);
         };
-    }, [open,onClose]);
+    }, [active,onClose]);
 
     // WINDOW FOCUS
     React.useEffect(() => {
-        if(!open){ return; }
+        if(!active){ return; }
         let shift = false;
         const handleKeyDown = (event: KeyboardEvent) => { if (event.key === "Shift") { shift = true; }};
         const handleKeyUp   = (event: KeyboardEvent) => { if (event.key === "Shift") { shift = false; } };
@@ -142,22 +158,28 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
             window.removeEventListener("keyup", handleKeyUp);
             window.removeEventListener("focus", restoreFocus);
         };
-    }, [open]);
+    }, [active]);
 
-  
-    if(!open) {
+    const transitionStyles = React.useMemo<React.CSSProperties>(()=>{
+        return {
+            animationDuration: `${msec ?? 0}ms`
+        }
+    },[msec]);
+
+    if(!active) {
         return <React.Fragment></React.Fragment>
     }
+
   
     return (
         <React.Fragment>
-            <div ref={sentinel1} tabIndex={open ? 0 : -1} className={css.tabFocusSentinel} />
-                <div ref={overlay} className={css.modalOverlay} role="dialog" aria-modal="true" tabIndex={-1}>
-                    <div ref={content} {...modalProps} className={`${modalProps?.className ?? ''} ${css.modalContent}`} tabIndex={-1}>
+            <div ref={sentinel1} tabIndex={active ? 0 : -1} className={css.tabFocusSentinel} />
+                <div ref={overlay} className={`${css.modalOverlay} ${open ? css.show : css.hide}`} style={transitionStyles} role="dialog" aria-modal="true" tabIndex={-1}>
+                    <div ref={content} {...modalProps} className={`${modalProps?.className ?? ''} ${css.modalContent} ${open ? css.show : css.hide}`} style={{...modalProps.style, ...transitionStyles}} tabIndex={-1}>
                         {props.children}
                     </div>
                 </div>
-            <div ref={sentinel2} tabIndex={open ? 0 : -1} className={css.tabFocusSentinel} />
+            <div ref={sentinel2} tabIndex={active ? 0 : -1} className={css.tabFocusSentinel} />
         </React.Fragment>
     );
   });
