@@ -6,7 +6,7 @@ export type IModalProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'childr
     children: Array<React.ReactElement<unknown,string|React.JSXElementConstructor<unknown>>>
     open: boolean;
     msec?: number;
-    onClose: () => void;
+    onClose: (reason:'escape'|'overlayClick') => void;
 }
 
 export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttributes<HTMLDivElement|null>> = React.forwardRef<HTMLDivElement|null,IModalProps>((props:IModalProps,ref:React.ForwardedRef<HTMLDivElement|null>) => {
@@ -134,7 +134,7 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
         const escapeKeyDownEventHandler = (event: KeyboardEvent) => {
             if (event.key !== "Escape") return;
             event.preventDefault();
-            onClose();
+            onClose('escape');
         }
 
         document.addEventListener("keydown", escapeKeyDownEventHandler);
@@ -160,6 +160,13 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
         };
     }, [active]);
 
+    const onOverlayClickEventHandler = React.useCallback((event: React.MouseEvent<HTMLDivElement, MouseEvent>)=>{
+        event.stopPropagation();
+        event.preventDefault();
+        if(event.target!==event.currentTarget){ return; }
+        onClose('overlayClick');
+    },[onClose])
+
     const transitionStyles = React.useMemo<React.CSSProperties>(()=>{
         return {
             animationDuration: `${msec ?? 0}ms`
@@ -174,7 +181,7 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
     return (
         <React.Fragment>
             <div ref={sentinel1} tabIndex={active ? 0 : -1} className={css.tabFocusSentinel} />
-                <div ref={overlay} className={`${css.modalOverlay} ${open ? css.show : css.hide}`} style={transitionStyles} role="dialog" aria-modal="true" tabIndex={-1}>
+                <div ref={overlay} className={`${css.modalOverlay} ${open ? css.show : css.hide}`} style={transitionStyles} role="dialog" aria-modal="true" tabIndex={-1} onClick={onOverlayClickEventHandler}>
                     <div ref={content} {...modalProps} className={`${modalProps?.className ?? ''} ${css.modalContent} ${open ? css.show : css.hide}`} style={{...modalProps.style, ...transitionStyles}} tabIndex={-1}>
                         {props.children}
                     </div>
