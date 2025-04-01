@@ -4,14 +4,15 @@ import React from "react";
 
 export type IModalProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'children'> & { 
     children: Array<React.ReactElement<unknown,string|React.JSXElementConstructor<unknown>>>
-    open: boolean;
-    msec?: number;
+    open: boolean; 
+    msec?: number; // Transition duration 
+    back?: string; // Overlay color override
     onClose: (reason:'escape'|'overlayClick') => void;
 }
 
 export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttributes<HTMLDivElement|null>> = React.forwardRef<HTMLDivElement|null,IModalProps>((props:IModalProps,ref:React.ForwardedRef<HTMLDivElement|null>) => {
 
-    const { open, msec, onClose, children, ...modalProps } = props;
+    const { open, msec, back, onClose, children, ...modalProps } = props;
 
     // Active state to handle transient states during css transitions
     const [active, setActive] = React.useState<boolean>(open);
@@ -193,7 +194,7 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
     return (
         <React.Fragment>
             <div ref={sentinel1} tabIndex={active ? 0 : -1} className={css.tabFocusSentinel} />
-                <div ref={overlay} className={`${css.modalOverlay} ${open ? css.ovlShow : css.ovlHide}`} style={transitionStyles} role="dialog" aria-modal="true" tabIndex={-1} onClick={onOverlayClickEventHandler}>
+                <div ref={overlay} className={`${css.modalOverlay} ${open ? css.ovlShow : css.ovlHide}`} style={{...transitionStyles,background:back}} role="dialog" aria-modal="true" tabIndex={-1} onClick={onOverlayClickEventHandler}>
                     <div ref={content} {...modalProps} className={`${modalProps?.className ?? ''} ${css.modalContent} ${open ? css.cntShow : css.cntHide}`} style={{...modalProps.style, ...transitionStyles}} tabIndex={-1}>
                         {props.children}
                     </div>
