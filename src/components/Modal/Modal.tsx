@@ -28,18 +28,27 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
     });
 
     // Stretch active time in case of transitions (close)
+    const isAnimate = React.useRef<boolean>(false);
     React.useEffect(()=>{
-        let timeout: NodeJS.Timeout;
+        let timer:NodeJS.Timer|undefined = undefined;
+        const MSEC = msec === undefined ? 0 : Math.max(0,msec);
         if (open) {
-            setActive(true);
+            setActive(true); // Overlay active before animationStart
+            isAnimate.current=true;
+            timer = setTimeout(() => {isAnimate.current=false;},MSEC ?? 0);
+            
         } else {
-            timeout = setTimeout(() => setActive(false), msec ?? 0);
+            isAnimate.current=true;
+            timer = setTimeout(() => {isAnimate.current=false; setActive(false); },MSEC ?? 0); // Overlay notActive after animationEnd
         }
-        return () => clearTimeout(timeout); 
+        return () => {
+            clearTimeout(timer);
+            isAnimate.current=false;
+        }; 
     },[open,msec])
     
 
-    // UNMOUNT => RESTORE 
+    // OnUnmount => Restore previous focus 
     React.useEffect(() => {
         return () => {
             outerFocus.current?.focus?.();
@@ -47,7 +56,7 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
         };
     }, []);
 
-    // TRAP/UNTRAP FOCUS WHILE OPENING/CLOSING
+    // When the modal is opened, force the focus to the first sentinel 
     React.useEffect(() => {
         if(active) {
             outerFocus.current = document.activeElement as HTMLElement;
@@ -57,7 +66,7 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
         }
     }, [active]);
 
-    // OVERLAY REMOVAL
+    // Observe overlay Removal => in that case disable pointer events
     React.useEffect(()=>{
         if(!active){ 
             document.body.style.pointerEvents = ''; 
@@ -87,7 +96,7 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
     },[active])
 
   
-    // TAB HANDLER
+    // Tab KeyDown event listener while the modal is opened
     React.useEffect(() => {
 
         if(!active){ return; }
@@ -126,24 +135,7 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
         };
     }, [active]);
 
-    // ESC HANDLER
-    React.useEffect(() => {
-
-        if(!active){ return; }
-
-        const escapeKeyDownEventHandler = (event: KeyboardEvent) => {
-            if (event.key !== "Escape") return;
-            event.preventDefault();
-            onClose('escape');
-        }
-
-        document.addEventListener("keydown", escapeKeyDownEventHandler);
-        return () => {
-            document.removeEventListener("keydown", escapeKeyDownEventHandler);
-        };
-    }, [active,onClose]);
-
-    // WINDOW FOCUS
+    // Window Focus => Force the focus to first sentinel
     React.useEffect(() => {
         if(!active){ return; }
         let shift = false;
@@ -160,17 +152,37 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
         };
     }, [active]);
 
+
+    // Emit onClose event when Escape key is pressed
+    React.useEffect(() => {
+
+        if(!active){ return; }
+
+        const escapeKeyDownEventHandler = (event: KeyboardEvent) => {
+            if (event.key !== "Escape") return;
+            event.preventDefault();
+            if(isAnimate.current){ return; }
+            onClose('escape');
+        }
+
+        document.addEventListener("keydown", escapeKeyDownEventHandler);
+        return () => {
+            document.removeEventListener("keydown", escapeKeyDownEventHandler);
+        };
+    }, [active,onClose]);
+
+    // Emit onClose event when user click the overlay
     const onOverlayClickEventHandler = React.useCallback((event: React.MouseEvent<HTMLDivElement, MouseEvent>)=>{
         event.stopPropagation();
         event.preventDefault();
         if(event.target!==event.currentTarget){ return; }
+        if(isAnimate.current){ return; }
         onClose('overlayClick');
     },[onClose])
 
+    // Dynamic Styles
     const transitionStyles = React.useMemo<React.CSSProperties>(()=>{
-        return {
-            animationDuration: `${msec ?? 0}ms`
-        }
+        return (msec===undefined || msec<=0) ? {} :{ animationDuration: `${msec ?? 0}ms`}
     },[msec]);
 
     if(!active) {
@@ -181,8 +193,8 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
     return (
         <React.Fragment>
             <div ref={sentinel1} tabIndex={active ? 0 : -1} className={css.tabFocusSentinel} />
-                <div ref={overlay} className={`${css.modalOverlay} ${open ? css.show : css.hide}`} style={transitionStyles} role="dialog" aria-modal="true" tabIndex={-1} onClick={onOverlayClickEventHandler}>
-                    <div ref={content} {...modalProps} className={`${modalProps?.className ?? ''} ${css.modalContent} ${open ? css.show : css.hide}`} style={{...modalProps.style, ...transitionStyles}} tabIndex={-1}>
+                <div ref={overlay} className={`${css.modalOverlay} ${open ? css.ovlShow : css.ovlHide}`} style={transitionStyles} role="dialog" aria-modal="true" tabIndex={-1} onClick={onOverlayClickEventHandler}>
+                    <div ref={content} {...modalProps} className={`${modalProps?.className ?? ''} ${css.modalContent} ${open ? css.cntShow : css.cntHide}`} style={{...modalProps.style, ...transitionStyles}} tabIndex={-1}>
                         {props.children}
                     </div>
                 </div>
