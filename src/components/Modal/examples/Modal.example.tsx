@@ -1,6 +1,7 @@
 import React from "react";
 import { Fragment } from "react/jsx-runtime";
 import { Modal } from "../Modal";
+import css from './Modal.module.css';
 
 const Component:React.FC<{}> = () => {
 
@@ -11,7 +12,7 @@ const Component:React.FC<{}> = () => {
 
         <button onClick={()=>setOpen(true)}></button>
 
-        <Modal open={open} msec={300} back={'rgba(0, 0, 0, 0.3)'} onClose={(reason)=>{setOpen(false);}}>
+        <Modal open={open} className={css.modalContent} msec={300} back={'rgba(0, 0, 0, 0.3)'} onClose={(reason)=>{setOpen(false);}}>
             <h2>Modale</h2>
             <p>Questo è un esempio di modale con trap focus.</p>
             <input type="text" placeholder="Campo di input" />
