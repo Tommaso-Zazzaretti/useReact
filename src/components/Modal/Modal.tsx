@@ -202,6 +202,7 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
                     </React.Fragment>
                 }
             </React.Fragment>,
-            document.body)
+            document.body
+        )
     );
   });
