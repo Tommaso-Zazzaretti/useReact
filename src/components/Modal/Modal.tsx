@@ -1,3 +1,4 @@
+import ReactDOM from 'react-dom';
 import { FocusUtils } from '../../utils/Focus';
 import css from './Modal.module.css';
 import React from "react";
@@ -104,7 +105,7 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
 
         const tabKeyDownEventHandler = (event: KeyboardEvent) => {
             if (event.key !== "Tab") return;
-            console.log(document.activeElement);
+            // console.log(document.activeElement);
             const focusable = FocusUtils.getFocusableElements(content.current!);
             const focus1 = focusable[0] ?? sentinel1;
             const focusN = focusable[focusable.length - 1] ?? sentinel2;
@@ -192,14 +193,16 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
 
   
     return (
-        <React.Fragment>
-            <div ref={sentinel1} tabIndex={active ? 0 : -1} className={css.tabFocusSentinel} />
-                <div ref={overlay} className={`${css.modalOverlay} ${open ? css.ovlShow : css.ovlHide}`} style={{...transitionStyles,background:back}} role="dialog" aria-modal="true" tabIndex={-1} onClick={onOverlayClickEventHandler}>
-                    <div ref={content} {...modalProps} className={`${modalProps?.className ?? ''} ${css.modalContent} ${open ? css.cntShow : css.cntHide}`} style={{...modalProps.style, ...transitionStyles}} tabIndex={-1}>
-                        {props.children}
+        ReactDOM.createPortal(
+            <React.Fragment>
+                <div ref={sentinel1} tabIndex={active ? 0 : -1} className={css.tabFocusSentinel} />
+                    <div ref={overlay} className={`${css.modalOverlay} ${open ? css.ovlShow : css.ovlHide}`} style={{...transitionStyles,background:back}} role="dialog" aria-modal="true" tabIndex={-1} onClick={onOverlayClickEventHandler}>
+                        <div ref={content} {...modalProps} className={`${modalProps?.className ?? ''} ${css.modalContent} ${open ? css.cntShow : css.cntHide}`} style={{...modalProps.style, ...transitionStyles}} tabIndex={-1}>
+                            {props.children}
+                        </div>
                     </div>
-                </div>
-            <div ref={sentinel2} tabIndex={active ? 0 : -1} className={css.tabFocusSentinel} />
-        </React.Fragment>
+                <div ref={sentinel2} tabIndex={active ? 0 : -1} className={css.tabFocusSentinel} />
+            </React.Fragment>,
+            document.body)
     );
   });
