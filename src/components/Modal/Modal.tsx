@@ -186,22 +186,21 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
     const transitionStyles = React.useMemo<React.CSSProperties>(()=>{
         return (msec===undefined || msec<=0) ? {} :{ animationDuration: `${msec ?? 0}ms`}
     },[msec]);
-
-    if(!active) {
-        return <React.Fragment></React.Fragment>
-    }
-
   
     return (
         ReactDOM.createPortal(
             <React.Fragment>
-                <div ref={sentinel1} tabIndex={active ? 0 : -1} className={css.tabFocusSentinel} />
-                    <div ref={overlay} className={`${css.modalOverlay} ${open ? css.ovlShow : css.ovlHide}`} style={{...transitionStyles,background:back}} role="dialog" aria-modal="true" tabIndex={-1} onClick={onOverlayClickEventHandler}>
-                        <div ref={content} {...modalProps} className={`${modalProps?.className ?? ''} ${css.modalContent} ${open ? css.cntShow : css.cntHide}`} style={{...modalProps.style, ...transitionStyles}} tabIndex={-1}>
-                            {props.children}
-                        </div>
-                    </div>
-                <div ref={sentinel2} tabIndex={active ? 0 : -1} className={css.tabFocusSentinel} />
+                {active &&
+                    <React.Fragment>
+                        <div ref={sentinel1} tabIndex={active ? 0 : -1} className={css.tabFocusSentinel} />
+                            <div ref={overlay} className={`${css.modalOverlay} ${open ? css.ovlShow : css.ovlHide}`} style={{...transitionStyles,background:back}} role="dialog" aria-modal="true" tabIndex={-1} onClick={onOverlayClickEventHandler}>
+                                <div ref={content} {...modalProps} className={`${modalProps?.className ?? ''} ${css.modalContent} ${open ? css.cntShow : css.cntHide}`} style={{...modalProps.style, ...transitionStyles}} tabIndex={-1}>
+                                    {props.children}
+                                </div>
+                            </div>
+                        <div ref={sentinel2} tabIndex={active ? 0 : -1} className={css.tabFocusSentinel} />
+                    </React.Fragment>
+                }
             </React.Fragment>,
             document.body)
     );
