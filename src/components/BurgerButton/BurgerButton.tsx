@@ -36,8 +36,12 @@ export const BurgerButton:React.ForwardRefExoticComponent<IBurgerButtonProps & R
         onToggle?.(checked);      
     },[onToggle])
 
+    const onEnterKeyDownEventHandler = React.useCallback((event: React.KeyboardEvent<HTMLElement>) => {
+        if(event.key !== 'Enter'){ return; }
+        onToggle?.(!toggle)
+    },[toggle,onToggle])   
+
     const rotationOverhead = React.useMemo(()=>{ return rotation; },[rotation])
-    
 
     const toggleParameters = React.useMemo<IBurgerButtonToggleParameters|undefined>(()=>{
         if(!checked || s2Ref.current===null || bRef.current===null){ return undefined; }
@@ -60,8 +64,8 @@ export const BurgerButton:React.ForwardRefExoticComponent<IBurgerButtonProps & R
         return { transform: toggleParameters!==undefined ? `translateY(-${toggleParameters.translateY}px) rotate(-${toggleParameters.angle + rotationOverhead}deg)`: "none",}
     },[toggleParameters,rotationOverhead]);
     
-    return <button ref={bRef} {...buttonProps} className={`${buttonProps.className ?? ''} ${css.burgerButton}`}>
-        <input type="checkbox" checked={checked} disabled={props.disabled} onChange={onBurgerButtonCheckboxChangeEventHandler}/>
+    return <button ref={bRef} {...buttonProps} className={`${buttonProps.className ?? ''} ${css.burgerButton}`} onKeyDown={onEnterKeyDownEventHandler}>
+        <input tabIndex={-1} type="checkbox" checked={checked} disabled={props.disabled} onChange={onBurgerButtonCheckboxChangeEventHandler}/>
         <span ref={s1Ref} style={span1Style}></span>
         <span ref={s2Ref} style={span2Style}></span>
         <span ref={s3Ref} style={span3Style}></span>
