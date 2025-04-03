@@ -6,6 +6,7 @@ import React from "react";
 export type IModalProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'children'> & { 
     children: Array<React.ReactElement<unknown,string|React.JSXElementConstructor<unknown>>>
     open: boolean; 
+    portalTo?: Element|DocumentFragment,
     msec?: number; // Transition duration 
     back?: string; // Overlay color override
     onClose: (reason:'escape'|'overlayClick') => void;
@@ -13,7 +14,7 @@ export type IModalProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'childr
 
 export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttributes<HTMLDivElement|null>> = React.forwardRef<HTMLDivElement|null,IModalProps>((props:IModalProps,ref:React.ForwardedRef<HTMLDivElement|null>) => {
 
-    const { open, msec, back, onClose, children, ...modalProps } = props;
+    const { open, msec, back, onClose, children, portalTo, ...modalProps } = props;
 
     // Active state to handle transient states during css transitions
     const [active, setActive] = React.useState<boolean>(open);
@@ -187,22 +188,21 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
         return (msec===undefined || msec<=0) ? {} :{ animationDuration: `${msec ?? 0}ms`}
     },[msec]);
   
-    return (
-        ReactDOM.createPortal(
-            <React.Fragment>
-                {active &&
-                    <React.Fragment>
-                        <div ref={sentinel1} tabIndex={active ? 0 : -1} className={css.tabFocusSentinel} />
-                            <div ref={overlay} className={`${css.modalOverlay} ${open ? css.ovlShow : css.ovlHide}`} style={{...transitionStyles,background:back}} role="dialog" aria-modal="true" tabIndex={-1} onClick={onOverlayClickEventHandler}>
-                                <div ref={content} {...modalProps} className={`${modalProps?.className ?? ''} ${css.modalContent} ${open ? css.cntShow : css.cntHide}`} style={{...modalProps.style, ...transitionStyles}} tabIndex={-1}>
-                                    {props.children}
-                                </div>
+    const modal = (
+        <React.Fragment>
+            {active &&
+                <React.Fragment>
+                    <div ref={sentinel1} tabIndex={active ? 0 : -1} className={css.tabFocusSentinel} />
+                        <div ref={overlay} className={`${css.modalOverlay} ${open ? css.ovlShow : css.ovlHide}`} style={{...transitionStyles,background:back}} role="dialog" aria-modal="true" tabIndex={-1} onClick={onOverlayClickEventHandler}>
+                            <div ref={content} {...modalProps} className={`${modalProps?.className ?? ''} ${css.modalContent} ${open ? css.cntShow : css.cntHide}`} style={{...modalProps.style, ...transitionStyles}} tabIndex={-1}>
+                                {props.children}
                             </div>
-                        <div ref={sentinel2} tabIndex={active ? 0 : -1} className={css.tabFocusSentinel} />
-                    </React.Fragment>
-                }
-            </React.Fragment>,
-            document.body
-        )
-    );
+                        </div>
+                    <div ref={sentinel2} tabIndex={active ? 0 : -1} className={css.tabFocusSentinel} />
+                </React.Fragment>
+            }
+        </React.Fragment>
+    )
+
+    return portalTo===undefined ? modal : ReactDOM.createPortal(modal,portalTo)
   });
