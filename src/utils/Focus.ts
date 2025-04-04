@@ -70,6 +70,7 @@ export class FocusUtils {
     };
     
     public static getFocusableElements(element: HTMLElement) {
+        if (!element) { return []; }
         const focusable = element.querySelectorAll("*") as NodeListOf<HTMLElement>;
         return Array.from(focusable).filter(el => FocusUtils.isFocusable(el,element));
     };
