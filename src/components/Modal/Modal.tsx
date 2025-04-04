@@ -8,13 +8,17 @@ export type IModalProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'childr
     open: boolean; 
     portalTo?: Element|DocumentFragment,
     msec?: number; // Transition duration 
-    back?: string; // Overlay color override
+    bProps?: IBackdropProps; // Overlay color override
     onClose: (reason:'escape'|'overlayClick') => void;
+}
+
+export type IBackdropProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'children'> & { 
+    style?: Omit<React.CSSProperties,'animationDuration'|'transitionDuration'>;
 }
 
 export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttributes<HTMLDivElement|null>> = React.forwardRef<HTMLDivElement|null,IModalProps>((props:IModalProps,ref:React.ForwardedRef<HTMLDivElement|null>) => {
 
-    const { open, msec, back, onClose, children, portalTo, ...modalProps } = props;
+    const { open, msec, onClose, children, portalTo, bProps, ...modalProps } = props;
 
     // Active state to handle transient states during css transitions
     const [active, setActive] = React.useState<boolean>(open);
@@ -178,14 +182,17 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
     const onOverlayClickEventHandler = React.useCallback((event: React.MouseEvent<HTMLDivElement, MouseEvent>)=>{
         event.stopPropagation();
         event.preventDefault();
+        bProps?.onClick?.(event);
         if(event.target!==event.currentTarget){ return; }
         if(isAnimate.current){ return; }
         onClose('overlayClick');
-    },[onClose])
+    },[onClose,bProps])
 
     // Controlled Styles
     const controlledStyles = React.useMemo<React.CSSProperties>(()=>{
-        return (msec===undefined || msec<=0) ? {} :{ animationDuration: `${msec ?? 0}ms`, transitionDuration: `${msec ?? 0}ms`}
+        return (msec===undefined || msec<=0) 
+            ? {} 
+            : { animationDuration: `${msec ?? 0}ms`, transitionDuration: `${msec ?? 0}ms`}
     },[msec]);
   
     const modal = (
@@ -193,8 +200,8 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
             {active &&
                 <React.Fragment>
                     <div ref={sentinel1} tabIndex={active ? 0 : -1} className={css.tabFocusSentinel} />
-                        <div ref={overlay} className={`${css.modalOverlay} ${open ? css.open : css.close}`} style={{...controlledStyles,background:back}} role="dialog" aria-modal="true" tabIndex={-1} onClick={onOverlayClickEventHandler}>
-                            <div ref={content} {...modalProps} className={`${modalProps?.className ?? ''} ${css.modalContent} ${open ? css.open : css.close}`} style={{...modalProps.style, ...controlledStyles}} tabIndex={-1}>
+                        <div ref={overlay} {...bProps} className={`${css.modalOverlay} ${open ? css.open : css.close} ${bProps?.className ?? ''}`} style={{...bProps?.style, ...controlledStyles}} role="dialog" aria-modal="true" tabIndex={-1} onClick={onOverlayClickEventHandler}>
+                            <div ref={content} {...modalProps} className={`${css.modalContent} ${open ? css.open : css.close} ${modalProps?.className ?? ''}`} style={{...modalProps.style, ...controlledStyles}} tabIndex={-1}>
                                 {props.children}
                             </div>
                         </div>

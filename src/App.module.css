@@ -30,3 +30,43 @@
     background-color: #0a7b0c;
     width: 10%;
 }
+
+
+
+
+
+
+
+.backdrop.customBackdrop {
+    animation: unset;
+    opacity: 1;
+    background: rgba(0, 0, 0, 0);
+}
+.backdrop.customBackdrop.open {
+    animation: unset;
+    background: rgba(255, 0, 0, 0.5);
+    transition: background ease-in-out; /* Mantiene il fade */
+}
+.backdrop.customBackdrop.close {
+    animation: unset;
+    background: rgba(0, 0, 0, 0);
+    transition: background ease-in-out; /* Mantiene il fade */
+}
+
+
+.modal.customModal {
+    animation: unset;
+    opacity: 1;
+    transform: scale(1.0);
+    background: rgba(0, 0, 200, 0);
+}
+.modal.customModal.open {
+    animation: unset;
+    background: rgba( 0, 200, 0, 0);
+    transition: background ease-in-out;
+}
+.modal.customModal.close {
+    animation: unset;
+    background: rgba(0, 0, 200, 0);
+    transition: background ease-in-out;
+}
