@@ -188,13 +188,16 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
         return (msec===undefined || msec<=0) ? {} :{ animationDuration: `${msec ?? 0}ms`, transitionDuration: `${msec ?? 0}ms`}
     },[msec]);
   
+    const overlayClass = `${css.overlay} ${css.modalOverlay} ${open ? css.open : css.close}`
+    const contentClass = `${css.content} ${css.modalContent} ${open ? css.open : css.close} ${modalProps?.className ?? ''}`
+
     const modal = (
         <React.Fragment>
             {active &&
                 <React.Fragment>
                     <div ref={sentinel1} tabIndex={active ? 0 : -1} className={css.tabFocusSentinel} />
-                        <div ref={overlay} className={`${css.modalOverlay} ${open ? css.open : css.close}`} style={{...controlledStyles,background:back}} role="dialog" aria-modal="true" tabIndex={-1} onClick={onOverlayClickEventHandler}>
-                            <div ref={content} {...modalProps} className={`${modalProps?.className ?? ''} ${css.modalContent} ${open ? css.open : css.close}`} style={{...modalProps.style, ...controlledStyles}} tabIndex={-1}>
+                        <div ref={overlay} className={overlayClass} style={{...controlledStyles,background:back}} role="dialog" aria-modal="true" tabIndex={-1} onClick={onOverlayClickEventHandler}>
+                            <div ref={content} {...modalProps} className={contentClass} style={{...modalProps.style, ...controlledStyles}} tabIndex={-1}>
                                 {props.children}
                             </div>
                         </div>
