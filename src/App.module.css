@@ -30,3 +30,54 @@
     background-color: #0a7b0c;
     width: 10%;
 }
+
+
+
+
+
+
+
+.backdrop.customBackdrop {
+    /* Disable default transitions value */
+    opacity: 1;
+    /* Custom Style */
+    background: rgba(255, 153, 0, 0.462);
+}
+.backdrop.customBackdrop.open {
+    /* Disable default transitions */
+    animation: unset;
+    /* Custom Style */
+    background: rgba(255, 0, 0, 0.2);
+    transition: background ease-in-out; /* Mantiene il fade */
+}
+.backdrop.customBackdrop.close {
+    /* Disable default transitions */
+    animation: unset;
+    /* Custom Style */
+    background: rgba(255, 153, 0, 0.462);
+    transition: background ease-in-out; /* Mantiene il fade */
+}
+
+
+
+
+.modal.customModal {
+    /* Disable default transitions */
+    opacity: 1;
+    transform: scale(1.0);
+    /* Custom Style */
+    background: rgba(0, 0, 250, 0.8);
+}
+.modal.customModal.open {
+    /* Disable default transitions */
+    animation: unset;
+    /* Custom Style */
+    background: rgba( 0, 200, 0, 0.5);
+}
+.modal.customModal.close {
+    /* Disable default transitions */
+    animation: unset;
+    /* Custom Style */
+    background: rgba(0, 0, 250, 0.8);
+    transition: background-color ease-in-out;
+}

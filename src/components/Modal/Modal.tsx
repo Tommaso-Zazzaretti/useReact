@@ -7,14 +7,18 @@ export type IModalProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'childr
     children: Array<React.ReactElement<unknown,string|React.JSXElementConstructor<unknown>>>
     open: boolean; 
     portalTo?: Element|DocumentFragment,
+    overlayProps?: IOverlayProps
     closeDelay?: number; // Transition duration 
-    back?: string; // Overlay color override
     onClose: (reason:'escape'|'overlayClick') => void;
+}
+
+export type IOverlayProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'children'> & {
+
 }
 
 export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttributes<HTMLDivElement|null>> = React.forwardRef<HTMLDivElement|null,IModalProps>((props:IModalProps,ref:React.ForwardedRef<HTMLDivElement|null>) => {
 
-    const { open, closeDelay, back, onClose, children, portalTo, ...modalProps } = props;
+    const { open, closeDelay, onClose, children, portalTo, overlayProps, ...contentProps } = props;
 
     // Active state to handle transient states during css transitions
     const [active, setActive] = React.useState<boolean>(open);
@@ -176,28 +180,29 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
 
     // Emit onClose event when user click the overlay
     const onOverlayClickEventHandler = React.useCallback((event: React.MouseEvent<HTMLDivElement, MouseEvent>)=>{
-        event.stopPropagation();
-        event.preventDefault();
+        overlayProps?.onClick?.(event);
         if(event.target!==event.currentTarget){ return; }
         if(isAnimate.current){ return; }
+        event.stopPropagation();
+        event.preventDefault();
         onClose('overlayClick');
-    },[onClose])
+    },[onClose,overlayProps])
 
     // Controlled Styles
     const controlledStyles = React.useMemo<React.CSSProperties>(()=>{
         return (closeDelay===undefined || closeDelay<=0) ? {} :{ animationDuration: `${closeDelay ?? 0}ms`, transitionDuration: `${closeDelay ?? 0}ms`}
     },[closeDelay]);
   
-    const overlayClass = `${css.overlay} ${css.modalOverlay} ${open ? css.open : css.close}`
-    const contentClass = `${css.content} ${css.modalContent} ${open ? css.open : css.close} ${modalProps?.className ?? ''}`
+    const overlayClass = `${css.overlay} ${css.modalOverlay} ${open ? css.open : css.close} ${overlayProps?.className ?? ''}` 
+    const contentClass = `${css.content} ${css.modalContent} ${open ? css.open : css.close} ${contentProps?.className ?? ''}`
 
     const modal = (
         <React.Fragment>
             {active &&
                 <React.Fragment>
                     <div ref={sentinel1} tabIndex={active ? 0 : -1} className={css.tabFocusSentinel} />
-                        <div ref={overlay} className={overlayClass} style={{...controlledStyles,background:back}} role="dialog" aria-modal="true" tabIndex={-1} onClick={onOverlayClickEventHandler}>
-                            <div ref={content} {...modalProps} className={contentClass} style={{...modalProps.style, ...controlledStyles}} tabIndex={-1}>
+                        <div ref={overlay} {...overlayProps} className={overlayClass} style={{...overlayProps?.style, ...controlledStyles}} role="dialog" aria-modal="true" tabIndex={-1} onClick={onOverlayClickEventHandler}>
+                            <div ref={content} {...contentProps} className={contentClass} style={{...contentProps?.style, ...controlledStyles}} tabIndex={-1}>
                                 {props.children}
                             </div>
                         </div>
