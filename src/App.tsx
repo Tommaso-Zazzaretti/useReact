@@ -19,9 +19,9 @@ const App:React.FC<{}> = () => {
     <Modal 
       open={open} 
       portalTo={document.body} 
-      msec={300} 
+      closeDelay={300} 
       className={`${css.modal} ${css.customModal} ${open?css.open:css.close}`} 
-      bProps={{
+      overlayProps={{
         className:`${css.backdrop} ${css.customBackdrop} ${open?css.open:css.close}`
       }} 
       onClose={(reason)=>{setOpen(false);}}
