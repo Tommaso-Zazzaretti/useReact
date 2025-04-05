@@ -13,10 +13,22 @@ const App:React.FC<{}> = () => {
     scrollerRef.scrollTo({top,left});
   }, []);
 
-
   return (<Fragment>
     <Navbar/>
-    <Modal open={open} closeDelay={300} portalTo={document.body} onClose={(reason)=>{setOpen(false);}}>
+    <Modal 
+      open={open} 
+      // className={{
+      //   open: `${css.modal} ${css.modalOpen}`,
+      //   close:`${css.modal} ${css.modalClose}`,
+      // }}
+      // closeDelay={1000} 
+      portalTo={document.body} 
+      // overlayProps={{className: {
+      //   open: `${css.overlay} ${css.overlayOpen}`,
+      //   close:`${css.overlay} ${css.overlayClose}`,
+      // }}} 
+      onClose={(reason)=>{setOpen(false);}}
+    >
       <h2>Modale</h2>
       <p>Questo è un esempio di modale con trap focus.</p>
       <input type="text" placeholder="Campo di input" />

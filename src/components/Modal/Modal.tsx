@@ -3,8 +3,9 @@ import { FocusUtils } from '../../utils/Focus';
 import css from './Modal.module.css';
 import React from "react";
 
-export type IModalProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'children'> & { 
+export type IModalProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'children'|'className'> & { 
     children: Array<React.ReactElement<unknown,string|React.JSXElementConstructor<unknown>>>
+    className?: {open: string, close: string}
     open: boolean; 
     portalTo?: Element|DocumentFragment,
     overlayProps?: IOverlayProps
@@ -12,13 +13,13 @@ export type IModalProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'childr
     onClose: (reason:'escape'|'overlayClick') => void;
 }
 
-export type IOverlayProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'children'> & {
-
+export type IOverlayProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'children'|'className'> & {
+    className?: {open: string, close: string}
 }
 
 export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttributes<HTMLDivElement|null>> = React.forwardRef<HTMLDivElement|null,IModalProps>((props:IModalProps,ref:React.ForwardedRef<HTMLDivElement|null>) => {
 
-    const { open, closeDelay, onClose, children, portalTo, overlayProps, ...contentProps } = props;
+    const { open, closeDelay, onClose, children, portalTo, overlayProps, ...modalBxProps } = props;
 
     // Active state to handle transient states during css transitions
     const [active, setActive] = React.useState<boolean>(open);
@@ -38,15 +39,15 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
     const isAnimate = React.useRef<boolean>(false);
     React.useEffect(()=>{
         let timer:NodeJS.Timer|undefined = undefined;
-        const MSEC = closeDelay === undefined ? 0 : Math.max(0,closeDelay);
+        const MSEC = closeDelay === undefined ? 300 : Math.max(0,closeDelay);
         if (open) {
             setActive(true); // Overlay active before animationStart
             isAnimate.current=true;
-            timer = setTimeout(() => {isAnimate.current=false;},MSEC ?? 0);
+            timer = setTimeout(() => {isAnimate.current=false;},MSEC);
             
         } else {
             isAnimate.current=true;
-            timer = setTimeout(() => {isAnimate.current=false; setActive(false); },MSEC ?? 0); // Overlay notActive after animationEnd
+            timer = setTimeout(() => {isAnimate.current=false; setActive(false); },MSEC); // Overlay notActive after animationEnd
         }
         return () => {
             clearTimeout(timer);
@@ -188,21 +189,23 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
         onClose('overlayClick');
     },[onClose,overlayProps])
 
-    // Controlled Styles
-    const controlledStyles = React.useMemo<React.CSSProperties>(()=>{
-        return (closeDelay===undefined || closeDelay<=0) ? {} :{ animationDuration: `${closeDelay ?? 0}ms`, transitionDuration: `${closeDelay ?? 0}ms`}
-    },[closeDelay]);
-  
-    const overlayClass = `${css.overlay} ${css.modalOverlay} ${open ? css.open : css.close} ${overlayProps?.className ?? ''}` 
-    const contentClass = `${css.content} ${css.modalContent} ${open ? css.open : css.close} ${contentProps?.className ?? ''}`
+    const overlayClass = `${css.overlay} ${(!active ? '' : open 
+        ? `${css.overlayOpen} ${overlayProps?.className?.open ?? ''}` 
+        : `${css.overlayClose} ${overlayProps?.className?.close ?? ''}`)
+    }`;
+
+    const modalClass = `${css.modal} ${(!active ? '' : open 
+        ? `${css.modalOpen} ${modalBxProps?.className?.open ?? ''}` 
+        : `${css.modalClose} ${modalBxProps?.className?.close ?? ''}`)
+    }`;
 
     const modal = (
         <React.Fragment>
-            {active &&
+            {(active || open) &&
                 <React.Fragment>
                     <div ref={sentinel1} tabIndex={active ? 0 : -1} className={css.tabFocusSentinel} />
-                        <div ref={overlay} {...overlayProps} className={overlayClass} style={{...overlayProps?.style, ...controlledStyles}} role="dialog" aria-modal="true" tabIndex={-1} onClick={onOverlayClickEventHandler}>
-                            <div ref={content} {...contentProps} className={contentClass} style={{...contentProps?.style, ...controlledStyles}} tabIndex={-1}>
+                        <div ref={overlay} {...overlayProps} className={overlayClass} role="dialog" aria-modal="true" tabIndex={-1} onClick={onOverlayClickEventHandler}>
+                            <div ref={content} {...modalBxProps} className={modalClass} tabIndex={-1}>
                                 {props.children}
                             </div>
                         </div>
