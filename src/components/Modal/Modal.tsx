@@ -7,14 +7,14 @@ export type IModalProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'childr
     children: Array<React.ReactElement<unknown,string|React.JSXElementConstructor<unknown>>>
     open: boolean; 
     portalTo?: Element|DocumentFragment,
-    msec?: number; // Transition duration 
+    closeDelay?: number; // Transition duration 
     back?: string; // Overlay color override
     onClose: (reason:'escape'|'overlayClick') => void;
 }
 
 export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttributes<HTMLDivElement|null>> = React.forwardRef<HTMLDivElement|null,IModalProps>((props:IModalProps,ref:React.ForwardedRef<HTMLDivElement|null>) => {
 
-    const { open, msec, back, onClose, children, portalTo, ...modalProps } = props;
+    const { open, closeDelay, back, onClose, children, portalTo, ...modalProps } = props;
 
     // Active state to handle transient states during css transitions
     const [active, setActive] = React.useState<boolean>(open);
@@ -34,7 +34,7 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
     const isAnimate = React.useRef<boolean>(false);
     React.useEffect(()=>{
         let timer:NodeJS.Timer|undefined = undefined;
-        const MSEC = msec === undefined ? 0 : Math.max(0,msec);
+        const MSEC = closeDelay === undefined ? 0 : Math.max(0,closeDelay);
         if (open) {
             setActive(true); // Overlay active before animationStart
             isAnimate.current=true;
@@ -48,7 +48,7 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
             clearTimeout(timer);
             isAnimate.current=false;
         }; 
-    },[open,msec])
+    },[open,closeDelay])
     
 
     // OnUnmount => Restore previous focus 
@@ -185,8 +185,8 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
 
     // Controlled Styles
     const controlledStyles = React.useMemo<React.CSSProperties>(()=>{
-        return (msec===undefined || msec<=0) ? {} :{ animationDuration: `${msec ?? 0}ms`, transitionDuration: `${msec ?? 0}ms`}
-    },[msec]);
+        return (closeDelay===undefined || closeDelay<=0) ? {} :{ animationDuration: `${closeDelay ?? 0}ms`, transitionDuration: `${closeDelay ?? 0}ms`}
+    },[closeDelay]);
   
     const overlayClass = `${css.overlay} ${css.modalOverlay} ${open ? css.open : css.close}`
     const contentClass = `${css.content} ${css.modalContent} ${open ? css.open : css.close} ${modalProps?.className ?? ''}`
