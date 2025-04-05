@@ -12,8 +12,9 @@ export type IModalProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'childr
     onClose: (reason:'escape'|'overlayClick') => void;
 }
 
-export type IBackdropProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'children'> & { 
+export type IBackdropProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'children'|'style'|'className'> & { 
     style?: Omit<React.CSSProperties,'animationDuration'|'transitionDuration'>;
+    className?: {init: string; open: string; close: string;};
 }
 
 export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttributes<HTMLDivElement|null>> = React.forwardRef<HTMLDivElement|null,IModalProps>((props:IModalProps,ref:React.ForwardedRef<HTMLDivElement|null>) => {
@@ -195,12 +196,25 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
             : { animationDuration: `${msec ?? 0}ms`, transitionDuration: `${msec ?? 0}ms`}
     },[msec]);
   
+    /*
+        Open   => Change where user open/close the modal
+        Active => Change when Open Change but before openAnimation and after closeAnimation
+        This is necessary because browser needs a className change to trigger the animation
+        Unmount where Open and Active are false Both (active might be sufficient but we use open to emulate a className change)
+    */
     const modal = (
         <React.Fragment>
-            {active &&
+            {(open || active) &&
                 <React.Fragment>
                     <div ref={sentinel1} tabIndex={active ? 0 : -1} className={css.tabFocusSentinel} />
-                        <div ref={overlay} {...bProps} className={`${css.modalOverlay} ${open ? css.open : css.close} ${bProps?.className ?? ''}`} style={{...bProps?.style, ...controlledStyles}} role="dialog" aria-modal="true" tabIndex={-1} onClick={onOverlayClickEventHandler}>
+                        <div ref={overlay} {...bProps} 
+                        
+                            className={
+                                `${css.modalOverlay} ${(open && active) ? css.open : css.close} 
+                                ${bProps?.className?.init ?? ''} ${(open && active) ? bProps?.className?.open ?? '' : bProps?.className?.close ?? ''}`
+                            } 
+                                
+                                style={{...bProps?.style, ...controlledStyles}} role="dialog" aria-modal="true" tabIndex={-1} onClick={onOverlayClickEventHandler}>
                             <div ref={content} {...modalProps} className={`${css.modalContent} ${open ? css.open : css.close} ${modalProps?.className ?? ''}`} style={{...modalProps.style, ...controlledStyles}} tabIndex={-1}>
                                 {props.children}
                             </div>
