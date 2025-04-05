@@ -202,7 +202,7 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
     */
     const modal = () => {
         const backdropClassName = `${css.overlay} ${active ? `${css.modalOverlay} ${open ? css.open : css.close} ${overlayProps?.className ?? ''}` : ''}`;
-        const contentClassName  = `${css.content} ${active ? `${css.modalContent} ${open ? css.open : css.close} ${modalProps?.className ?? ''}` : ''}`
+        const contentClassName  = `${css.content} ${active ? `${css.modalContent} ${open ? css.open : css.close} ${modalProps  ?.className ?? ''}` : ''}`
         return (
             <React.Fragment>
                 {(open || active) &&
