@@ -12,9 +12,8 @@ export type IModalProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'childr
     onClose: (reason:'escape'|'overlayClick') => void;
 }
 
-export type IBackdropProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'children'|'style'|'className'> & { 
+export type IBackdropProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'children'|'style'> & { 
     style?: Omit<React.CSSProperties,'animationDuration'|'transitionDuration'>;
-    className?: {init: string; open: string; close: string;};
 }
 
 export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttributes<HTMLDivElement|null>> = React.forwardRef<HTMLDivElement|null,IModalProps>((props:IModalProps,ref:React.ForwardedRef<HTMLDivElement|null>) => {
@@ -202,28 +201,25 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
         This is necessary because browser needs a className change to trigger the animation
         Unmount where Open and Active are false Both (active might be sufficient but we use open to emulate a className change)
     */
-    const modal = (
-        <React.Fragment>
-            {(open || active) &&
-                <React.Fragment>
-                    <div ref={sentinel1} tabIndex={active ? 0 : -1} className={css.tabFocusSentinel} />
-                        <div ref={overlay} {...bProps} 
-                        
-                            className={
-                                `${css.modalOverlay} ${(open && active) ? css.open : css.close} 
-                                ${bProps?.className?.init ?? ''} ${(open && active) ? bProps?.className?.open ?? '' : bProps?.className?.close ?? ''}`
-                            } 
-                                
-                                style={{...bProps?.style, ...controlledStyles}} role="dialog" aria-modal="true" tabIndex={-1} onClick={onOverlayClickEventHandler}>
-                            <div ref={content} {...modalProps} className={`${css.modalContent} ${open ? css.open : css.close} ${modalProps?.className ?? ''}`} style={{...modalProps.style, ...controlledStyles}} tabIndex={-1}>
-                                {props.children}
+    const modal = () => {
+        const backdropClassName = `${css.overlay} ${active ? `${css.modalOverlay} ${open ? css.open : css.close} ${bProps?.className ?? ''}` : ''}`;
+        const contentClassName  = `${css.content} ${active ? `${css.modalContent} ${open ? css.open : css.close} ${modalProps?.className ?? ''}` : ''}`
+        return (
+            <React.Fragment>
+                {(open || active) &&
+                    <React.Fragment>
+                        <div ref={sentinel1} tabIndex={active ? 0 : -1} className={css.tabFocusSentinel} />
+                            <div ref={overlay} {...bProps} className={backdropClassName} style={{...bProps?.style, ...controlledStyles}} role="dialog" aria-modal="true" tabIndex={-1} onClick={onOverlayClickEventHandler}>
+                                <div ref={content} {...modalProps} className={contentClassName} style={{...modalProps.style, ...controlledStyles}} tabIndex={-1}>
+                                    {props.children}
+                                </div>
                             </div>
-                        </div>
-                    <div ref={sentinel2} tabIndex={active ? 0 : -1} className={css.tabFocusSentinel} />
-                </React.Fragment>
-            }
-        </React.Fragment>
-    )
+                        <div ref={sentinel2} tabIndex={active ? 0 : -1} className={css.tabFocusSentinel} />
+                    </React.Fragment>
+                }
+            </React.Fragment>
+        )
+    }
 
-    return portalTo===undefined ? modal : ReactDOM.createPortal(modal,portalTo)
+    return portalTo===undefined ? modal() : ReactDOM.createPortal(modal(),portalTo)
   });

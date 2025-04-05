@@ -58,15 +58,15 @@
     animation: unset;
     opacity: 1;
     transform: scale(1.0);
-    background: rgba(0, 0, 200, 0);
+    background: rgba(0, 0, 200, 0.5);
 }
 .modal.customModal.open {
     animation: unset;
-    background: rgba( 0, 200, 0, 0);
+    background: rgba( 0, 200, 0, 0.5);
     transition: background ease-in-out;
 }
 .modal.customModal.close {
     animation: unset;
-    background: rgba(0, 0, 200, 0);
+    background: rgba(0, 0, 200, 0.5);
     transition: background ease-in-out;
 }

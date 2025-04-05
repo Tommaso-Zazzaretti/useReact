@@ -22,11 +22,7 @@ const App:React.FC<{}> = () => {
       msec={300} 
       className={`${css.modal} ${css.customModal} ${open?css.open:css.close}`} 
       bProps={{
-        className:{
-          init: `${css.backdrop} ${css.customBackdrop}`,
-          open: `${css.backdrop} ${css.customBackdrop} ${css.open}`,
-          close:`${css.backdrop} ${css.customBackdrop} ${css.close}`
-        }
+        className:`${css.backdrop} ${css.customBackdrop} ${open?css.open:css.close}`
       }} 
       onClose={(reason)=>{setOpen(false);}}
     >
