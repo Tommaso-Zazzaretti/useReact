@@ -5,47 +5,37 @@ export class FocusUtils {
         const style = window.getComputedStyle(element);
     
         // Visibiliy Check
-        const isVisible = style.display !== "none" && style.visibility !== "hidden" && parseFloat(style.opacity) !== 0;
-        
-        // Aria-.. Check
-        const isAriaHidden = element.hasAttribute("aria-hidden") && element.getAttribute("aria-hidden") === "true";
-        
-        // Disabled Check
-        const isDisabled = element.hasAttribute("disabled") || element.hasAttribute("aria-disabled") || element.hasAttribute("readonly");
-        
-        // Tabindex Check
-        const hasNegativeTabIndex = element.hasAttribute("tabindex") && parseInt(element.getAttribute("tabindex")!) === -1;
-    
-        // Display Check
-        const isHidden = style.display === "contents" || element.hasAttribute("hidden");
-    
-        // Closed <details> Check
-        const isDetailsClosed = element.tagName === "DETAILS" && !(element as HTMLDetailsElement).open;
-    
-        // Collapse Visibility Check
-        const isCollapse = style.visibility === "collapse";
-    
-        // Position Check
-        const isPositionAbsoluteFixed = (style.position === "absolute" || style.position === "fixed") && !element.offsetParent;
-    
-        // Contenteditable Check
-        const isContentEditable = element.hasAttribute("contenteditable") && element.getAttribute("contenteditable") === "false";
-    
-        // If at least check is false, the element is not focusable via tab
-        if (
-            !isVisible ||
-            isAriaHidden ||
-            isDisabled ||
-            hasNegativeTabIndex ||
-            isHidden ||
-            isDetailsClosed ||
-            isCollapse ||
-            isPositionAbsoluteFixed ||
-            isContentEditable
-        ) {
+        if(style.display === "none" || style.visibility === "hidden" || style.visibility === "collapse" || parseFloat(style.opacity) === 0){
             return false;
         }
-    
+        // Aria-.. Check
+        if(element.hasAttribute("aria-hidden") && element.getAttribute("aria-hidden") === "true"){
+            return false;
+        }
+        // Disabled Check
+        if(element.hasAttribute("disabled") || element.hasAttribute("aria-disabled") || element.hasAttribute("readonly")){
+            return false;
+        };
+        // Tabindex Check
+        if(element.hasAttribute("tabindex") && parseInt(element.getAttribute("tabindex")!) === -1){
+            return false;
+        }
+        // Display Check
+        if(style.display === "contents" || element.hasAttribute("hidden")){
+            return false;
+        }
+        // Closed <details> Check
+        if(element.tagName === "DETAILS" && !(element as HTMLDetailsElement).open){
+            return false;
+        }
+        // Position Check
+        if((style.position === "absolute" || style.position === "fixed") && !element.offsetParent){
+            return false;
+        }
+        // Contenteditable Check
+        if(element.hasAttribute("contenteditable") && element.getAttribute("contenteditable") === "false"){
+            return false;
+        }
         // Role and type check
         const focusableElements = [
             "a[href]", "button", "input", "select", "textarea", "details", "summary",
@@ -54,7 +44,6 @@ export class FocusUtils {
             "[role='combobox']", "[role='listbox']", "[role='menu']", "[role='menuitem']",
             "[role='dialog']", "[role='alert']", "[role='textbox']", "[role='treeitem']"
         ];
-    
         return focusableElements.some(selector => element.matches(selector));
     };
     
