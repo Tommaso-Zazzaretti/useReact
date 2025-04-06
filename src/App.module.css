@@ -44,14 +44,14 @@
     animation: unset !important;
     /* Custom Style */
     background: rgba(0, 55, 252, 0.196) !important;
-    transition: background 1000ms ease-in-out !important; 
+    transition: background 300ms ease-in-out !important; 
 }
 .overlayClose {
     /* Disable default keyframe */
     animation: unset !important;
     /* Custom Style */
     background: rgba(0, 0, 0, 0.0) !important;
-    transition: background 1000ms ease-in-out !important; 
+    transition: background 300ms ease-in-out !important; 
 }
 
 
@@ -66,12 +66,12 @@
     animation: unset !important;
     /* Custom Style */
     opacity: 1 !important;
-    transition: opacity 1000ms ease-in-out !important;
+    transition: opacity 300ms ease-in-out !important;
 }
 .modalClose {
     /* Disable default keyframe */
     animation: unset !important;
     /* Custom Style */
     opacity: 0.0 !important;
-    transition: opacity 1000ms ease-in-out !important;
+    transition: opacity 300ms ease-in-out !important;
 }

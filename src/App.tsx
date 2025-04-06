@@ -22,13 +22,13 @@ const App:React.FC<{}> = () => {
       //   open: `${css.modalOpen}`,
       //   close:`${css.modalClose}`,
       // }}
-      // closeDelay={1000} 
+      closeDelay={300} 
       portalTo={document.body} 
-      // overlayProps={{className: {
-      //   init: `${css.overlay}`,
-      //   open: `${css.overlayOpen}`,
-      //   close:`${css.overlayClose}`,
-      // }}} 
+      overlayProps={{className: {
+        init: `${css.overlay}`,
+        open: `${css.overlayOpen}`,
+        close:`${css.overlayClose}`,
+      }}} 
       onClose={(reason)=>{setOpen(false);}}
     >
       <h2>Modale</h2>
