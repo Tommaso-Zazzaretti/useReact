@@ -1,14 +1,49 @@
+.splitter {
+    height: calc(100% - 50px);
+
+}
+
+
+
+.divider {
+    background-color:#DDDDDD;
+}
+.divider:hover::before, .divider:active::before {
+    background-color:rgb(104, 1, 231);
+}
+
+
+
+.burgerButton span{
+    background-color: rgb(104, 1, 231) !important;
+}
+/* Hover Styles */
+.burgerButton:hover > span {
+    background-color: #0a7b0c !important;
+}
+/* Checked Styles */
+.burgerButton input:checked ~ span {
+    background-color: rgb(104, 1, 231);
+    width: 30%;
+}
+.burgerButton:hover input:checked ~ span {
+    background-color: #0a7b0c;
+    width: 10%;
+}
+
+
+
 .overlay {
     /* Custom Style */
     opacity: 1 !important;
-    background: rgba(0, 0, 0, 0.0) !important;
+    background: rgba(255, 0, 0, 0.0) !important;
     z-index: 1000000000 !important;
 }
 .overlayOpen {
     /* Disable default keyframe */
     animation: unset !important;
     /* Custom Style */
-    background: rgba(0, 0, 0, 1.0) !important;
+    background: rgba(0, 55, 252, 0.196) !important;
     transition: background 1000ms ease-in-out !important; 
 }
 .overlayClose {
@@ -25,8 +60,6 @@
     opacity: 0.0 !important;
     transform: scale(1.0) !important;
     background: rgba(255, 255, 255, 1) !important;
-    min-width:  600px !important;
-    min-height: 300px !important;
 }
 .modalOpen {
     /* Disable default keyframe */

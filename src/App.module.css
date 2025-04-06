@@ -36,14 +36,14 @@
 .overlay {
     /* Custom Style */
     opacity: 1 !important;
-    background: rgba(0, 0, 0, 0.0) !important;
+    background: rgba(255, 0, 0, 0.0) !important;
     z-index: 1000000000 !important;
 }
 .overlayOpen {
     /* Disable default keyframe */
     animation: unset !important;
     /* Custom Style */
-    background: rgba(0, 0, 0, 1.0) !important;
+    background: rgba(0, 55, 252, 0.196) !important;
     transition: background 1000ms ease-in-out !important; 
 }
 .overlayClose {

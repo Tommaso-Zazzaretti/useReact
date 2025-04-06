@@ -5,7 +5,7 @@ import React from "react";
 
 export type IModalProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'children'|'className'> & { 
     children: Array<React.ReactElement<unknown,string|React.JSXElementConstructor<unknown>>>
-    className?: {open: string, close: string}
+    className?: {init: string, open: string, close: string}
     open: boolean; 
     portalTo?: Element|DocumentFragment,
     overlayProps?: IOverlayProps
@@ -14,7 +14,7 @@ export type IModalProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'childr
 }
 
 export type IOverlayProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'children'|'className'> & {
-    className?: {open: string, close: string}
+    className?: {init: string, open: string, close: string}
 }
 
 export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttributes<HTMLDivElement|null>> = React.forwardRef<HTMLDivElement|null,IModalProps>((props:IModalProps,ref:React.ForwardedRef<HTMLDivElement|null>) => {
@@ -189,12 +189,12 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
         onClose('overlayClick');
     },[onClose,overlayProps])
 
-    const overlayClass = `${css.overlay} ${(!active ? '' : open 
+    const overlayClass = `${css.overlay} ${overlayProps?.className?.init ?? ''} ${(!active ? '' : open 
         ? `${css.overlayOpen} ${overlayProps?.className?.open ?? ''}` 
         : `${css.overlayClose} ${overlayProps?.className?.close ?? ''}`)
     }`;
 
-    const modalClass = `${css.modal} ${(!active ? '' : open 
+    const modalClass = `${css.modal} ${modalBxProps?.className?.init ?? ''} ${(!active ? '' : open 
         ? `${css.modalOpen} ${modalBxProps?.className?.open ?? ''}` 
         : `${css.modalClose} ${modalBxProps?.className?.close ?? ''}`)
     }`;

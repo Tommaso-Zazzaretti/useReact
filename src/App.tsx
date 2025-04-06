@@ -18,14 +18,16 @@ const App:React.FC<{}> = () => {
     <Modal 
       open={open} 
       // className={{
-      //   open: `${css.modal} ${css.modalOpen}`,
-      //   close:`${css.modal} ${css.modalClose}`,
+      //   init: `${css.modal}`,
+      //   open: `${css.modalOpen}`,
+      //   close:`${css.modalClose}`,
       // }}
       // closeDelay={1000} 
       portalTo={document.body} 
       // overlayProps={{className: {
-      //   open: `${css.overlay} ${css.overlayOpen}`,
-      //   close:`${css.overlay} ${css.overlayClose}`,
+      //   init: `${css.overlay}`,
+      //   open: `${css.overlayOpen}`,
+      //   close:`${css.overlayClose}`,
       // }}} 
       onClose={(reason)=>{setOpen(false);}}
     >
