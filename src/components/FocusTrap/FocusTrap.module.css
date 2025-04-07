@@ -1,0 +1,8 @@
+/* Sentinels */
+.tabFocusSentinel {
+    position: absolute;   
+    width: 100vw;          
+    height: 0px;
+    top: -9999px;         
+    left: -9999px;       
+}

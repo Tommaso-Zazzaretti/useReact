@@ -1,7 +1,7 @@
 import ReactDOM from 'react-dom';
-import { FocusUtils } from '../../utils/Focus';
 import css from './Modal.module.css';
 import React from "react";
+import FocusTrap from '../FocusTrap/FocusTrap';
 
 export type IModalProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'children'|'className'> & { 
     children: Array<React.ReactElement<unknown,string|React.JSXElementConstructor<unknown>>>
@@ -24,11 +24,9 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
     // Active state to handle transient states during css transitions
     const [active, setActive] = React.useState<boolean>(open);
 
-    const overlay    = React.useRef<HTMLDivElement>(null);
-    const content    = React.useRef<HTMLDivElement>(null);
-    const sentinel1  = React.useRef<HTMLDivElement|null>(null);
-    const sentinel2  = React.useRef<HTMLDivElement|null>(null);
-    const outerFocus = React.useRef<HTMLElement|null>(null);
+    const overlay = React.useRef<HTMLDivElement>(null);
+    const content = React.useRef<HTMLDivElement>(null);
+    
 
     // Link Forwarded div Ref with real div Ref
     React.useImperativeHandle<HTMLDivElement|null,HTMLDivElement|null>(ref, () => { 
@@ -54,25 +52,6 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
             isAnimate.current=false;
         }; 
     },[open,closeDelay])
-    
-
-    // OnUnmount => Restore previous focus 
-    React.useEffect(() => {
-        return () => {
-            outerFocus.current?.focus?.();
-            document.body.style.pointerEvents = ''; 
-        };
-    }, []);
-
-    // When the modal is opened, force the focus to the first sentinel 
-    React.useEffect(() => {
-        if(active) {
-            outerFocus.current = document.activeElement as HTMLElement;
-            sentinel1.current?.focus?.();
-        } else {
-            outerFocus.current?.focus?.();
-        }
-    }, [active]);
 
     // Observe overlay Removal => in that case disable pointer events
     React.useEffect(()=>{
@@ -102,64 +81,6 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
             observer.disconnect();
         }
     },[active])
-
-  
-    // Tab KeyDown event listener while the modal is opened
-    React.useEffect(() => {
-
-        if(!active){ return; }
-
-        const tabKeyDownEventHandler = (event: KeyboardEvent) => {
-            if (event.key !== "Tab") return;
-            // console.log(document.activeElement);
-            const focusable = FocusUtils.getFocusableElements(content.current!);
-            const focus1 = focusable[0] ?? sentinel1;
-            const focusN = focusable[focusable.length - 1] ?? sentinel2;
-
-            const isFirst = document.activeElement === focus1 || document.activeElement === sentinel1.current;
-            const isLast  = document.activeElement === focusN || document.activeElement === sentinel2.current;
-    
-            if(document.activeElement===document.body || document.activeElement===null){
-                event.preventDefault();
-                const focus = event.shiftKey ? sentinel2 : sentinel1;
-                focus.current?.focus?.(); 
-                return; 
-            }
-            if ((event.shiftKey && isFirst)) {
-                event.preventDefault();
-                focusN?.focus?.(); // Go to Last
-                return;
-            }
-            if (!event.shiftKey && isLast) {
-                event.preventDefault();
-                focus1?.focus?.(); // Go to First
-                return;
-            }
-        }
-
-        document.addEventListener("keydown", tabKeyDownEventHandler);
-        return () => {
-            document.removeEventListener("keydown", tabKeyDownEventHandler);
-        };
-    }, [active]);
-
-    // Window Focus => Force the focus to first sentinel
-    React.useEffect(() => {
-        if(!active){ return; }
-        let shift = false;
-        const handleKeyDown = (event: KeyboardEvent) => { if (event.key === "Shift") { shift = true; }};
-        const handleKeyUp   = (event: KeyboardEvent) => { if (event.key === "Shift") { shift = false; } };
-        const restoreFocus  = () => { (shift ? sentinel2 : sentinel1)?.current?.focus?.(); };
-        window.addEventListener("keydown", handleKeyDown);
-        window.addEventListener("keyup", handleKeyUp);
-        window.addEventListener("focus", restoreFocus);
-        return () => {
-            window.removeEventListener("keydown", handleKeyDown);
-            window.removeEventListener("keyup", handleKeyUp);
-            window.removeEventListener("focus", restoreFocus);
-        };
-    }, [active]);
-
 
     // Emit onClose event when Escape key is pressed
     React.useEffect(() => {
@@ -202,15 +123,13 @@ export const Modal:React.ForwardRefExoticComponent<IModalProps & React.RefAttrib
     const modal = (
         <React.Fragment>
             {(active || open) &&
-                <React.Fragment>
-                    <div ref={sentinel1} tabIndex={active ? 0 : -1} className={css.tabFocusSentinel} />
-                        <div ref={overlay} {...overlayProps} className={overlayClass} role="dialog" aria-modal="true" tabIndex={-1} onClick={onOverlayClickEventHandler}>
-                            <div ref={content} {...modalBxProps} className={modalClass} tabIndex={-1}>
-                                {props.children}
-                            </div>
+                <FocusTrap active={active}>
+                    <div ref={overlay} {...overlayProps} className={overlayClass} tabIndex={-1} onClick={onOverlayClickEventHandler}>
+                        <div ref={content} {...modalBxProps} className={modalClass} tabIndex={-1} role="dialog" aria-modal="true">
+                            {props.children}
                         </div>
-                    <div ref={sentinel2} tabIndex={active ? 0 : -1} className={css.tabFocusSentinel} />
-                </React.Fragment>
+                    </div>
+                </FocusTrap>
             }
         </React.Fragment>
     )
