@@ -18,6 +18,9 @@
     background-color: rgb(104, 1, 231) !important;
 }
 /* Hover Styles */
+/* .burgerButton:hover  {
+    transform: scale(1.15) !important;
+} */
 .burgerButton:hover > span {
     background-color: #0a7b0c !important;
 }

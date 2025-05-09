@@ -11,7 +11,13 @@
     justify-content: space-evenly;
     align-items: center;
     flex-direction: column;
+    transform-origin: center;
+    transition: transform 0.3s ease;
 }
+.burgerButton:hover {
+    transform: scale(1.1);
+}
+
 
 .burgerButton input[type='checkbox'] {
     position: absolute; 
