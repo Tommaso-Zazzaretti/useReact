@@ -21,6 +21,13 @@
 /* .burgerButton:hover  {
     transform: scale(1.15) !important;
 } */
+.burgerButton > span {
+    transition: 
+        transform 0.3s, 
+        opacity 0.4s ease-in, 
+        width 0.3s,
+        background-color 0.3s ease !important;
+}
 .burgerButton:hover > span {
     background-color: #0a7b0c !important;
 }
