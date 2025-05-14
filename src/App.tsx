@@ -29,11 +29,22 @@ const App:React.FC<{}> = () => {
         <div style={{backgroundColor:'#EEEEFF', width:'100%', height:'100%'}}>
           <br></br>
           <br></br>
-          <Accordion singleOpen arrowStyle='chevron'>
-            <div title="Sezione 1">Contenuto 1</div>
-            <div title="Sezione 2">Contenuto 2</div>
-            <div title="Sezione 3">Contenuto 3</div>
+          <Accordion singleOpen arrowStyle='caret'>
+            <Accordion.Item title="Section1" ref={(ref)=>{console.log(ref)}}>
+              <div>Contenuto 1</div>
+            </Accordion.Item>
+            <Accordion.Item title="Section2">
+              <div>Contenuto 1</div>
+            </Accordion.Item>
+            <Accordion.Item title="Section3">
+              <div>Contenuto 1</div>
+            </Accordion.Item>
+             <Accordion.Item title="Section4">
+              <div>Contenuto 1</div>
+            </Accordion.Item>
+            
           </Accordion>
+
         </div>
       </Splitter>
 
