@@ -5,6 +5,7 @@
  .accordion {
     border-bottom: 1px solid #ddd;
     transition: margin 0.3s ease;
+    height: auto;
 }
 
 .accordionOpen {

@@ -1,136 +1,179 @@
 import React from "react";
 import css from './Accordion.module.css';
 
-// CONTEXT
+       /*---------+
+        | CONTEXT |
+        +---------*/
 type AccordionContextType = {
-  openIndexes: Array<number>,
-  arrowStyle?: 'chevron' | 'caret'
-  toggle:(index:number) => void,
-  subscribe:() => number;
-  length:() => number;
+    level: number;
+    opened: Set<HTMLDivElement>,
+    toggle:(element:HTMLDivElement) => void,
+    notify:(height:number) => void;
+    subscribe:(element:HTMLDivElement) => void;
+    unsubscribe:(element:HTMLDivElement) => void;
 }
+
 const AccordionContext = React.createContext<AccordionContextType>({
-  openIndexes:[],
-  arrowStyle:undefined,
-  toggle:()=>{},
-  length:()=>{return 0; },
-  subscribe:()=>{return 0; },
+    level: -1,
+    opened: new Set<HTMLDivElement>(),
+    toggle:()=>{},
+    notify:(height:number) => {},
+    subscribe:()=>{return; },
+    unsubscribe:()=>{return; }
 });
 
-// ACCORDION
+
+       /*-----------+
+        | ACCORDION |
+        +-----------*/
 export type IAccordionProps = Omit<React.HTMLAttributes<HTMLDivElement>, 'children'> & {
   children: 
     | React.ReactElement<IAccordionItemProps, string | React.JSXElementConstructor<typeof Accordion.Item>> 
     | React.ReactElement<IAccordionItemProps, string | React.JSXElementConstructor<typeof Accordion.Item>>[]
   singleOpen?: boolean
-  arrowStyle?: 'chevron' | 'caret'
 };
 
 const AccordionBase: React.ForwardRefExoticComponent<IAccordionProps & React.RefAttributes<HTMLDivElement | null>> = React.forwardRef<HTMLDivElement | null, IAccordionProps>((props: IAccordionProps, ref: React.ForwardedRef<HTMLDivElement | null>) => {
-
-  const {children,singleOpen,arrowStyle, ...divProps } = props;
-  const wRef = React.useRef<HTMLDivElement | null>(null);
-
-  // Link Forwarded div Ref with real div Ref
-  React.useImperativeHandle<HTMLDivElement | null, HTMLDivElement | null>(ref, () => {
-    return wRef.current;
-  });
-
-  const [openIndexes, setOpenIndexes] = React.useState<number[]>([]);
-  const itemCounter = React.useRef<number>(0);
-
-  const toggle = (index: number) => {
-    setOpenIndexes(prev => {
-      return prev.includes(index) ? prev.filter(i => i !== index) : singleOpen ? [index]: [...prev, index]
+    // Props
+    const {children,singleOpen, ...divProps } = props;
+    // Context
+    const parentContext = React.useContext(AccordionContext);
+    // States 
+    const [opened, setOpened] = React.useState<Set<HTMLDivElement>>(new Set());
+    // Refs
+    const level = React.useRef<number>(parentContext ? parentContext.level + 1 : 0);
+    const iRef  = React.useRef<Set<HTMLDivElement>>(new Set());
+    const wRef  = React.useRef<HTMLDivElement|null>(null);
+      // Forward Ref
+    React.useImperativeHandle<HTMLDivElement | null, HTMLDivElement | null>(ref, () => {
+        return wRef.current;
     });
-  }
-  const subscribe = ():number => {
-    const index = itemCounter.current;
-    itemCounter.current += 1;
-    return index;
-  };
 
-  const length = ():number => {
-    return Array.isArray(children) ? children.length : 1;
-  }
+    const toggle = (element: HTMLDivElement) => {
+        setOpened(p => {
+            if(p.has(element)){
+                const c = new Set<HTMLDivElement>(p);
+                c.delete(element);
+                return c;
+            } 
+            if(singleOpen){
+                return new Set<HTMLDivElement>([element]);
+            }
+            const c = new Set<HTMLDivElement>(p);
+            c.add(element);
+            return c;
+        });
+    }
 
-  return (
-    <AccordionContext.Provider value={{ openIndexes,arrowStyle, toggle,subscribe, length }}>
-      <div ref={wRef} {...divProps} className={`${divProps?.className ?? ''} ${css.accordionGroup}`}>
-        {children}
-      </div>
-    </AccordionContext.Provider>
-  )
+    const subscribe = (element:HTMLDivElement) => {
+        iRef.current.add(element);
+    };
+
+    const unsubscribe = (element:HTMLDivElement) => {
+        iRef.current.delete(element);
+        setOpened(p=>{
+            const c = new Set(p); 
+            c.delete(element); 
+            return c; 
+        })
+    };
+
+    const notify = (childHeight:number) => {
+        parentContext?.notify(childHeight + (wRef.current?.scrollHeight ?? 0));
+    };
+
+    const ctx:AccordionContextType = { 
+        level:level.current,
+        opened, 
+        toggle,
+        notify,
+        subscribe,
+        unsubscribe
+    }
+
+    return (
+        <AccordionContext.Provider value={ctx}>
+            <div ref={wRef} {...divProps} className={`${divProps?.className ?? ''} ${css.accordionGroup}`}>
+                {children}
+            </div>
+        </AccordionContext.Provider>
+    )
 });
 
-
-// ITEM
-
-type IAccordionItemInnerProps = Omit<React.HTMLAttributes<HTMLDivElement | null>, 'children'> & {
-  children: React.ReactElement<unknown, string | React.JSXElementConstructor<unknown>>
-  title:string,
+       /*----------------+
+        | ACCORDION ITEM |
+        +----------------*/
+type IAccordionItemInnerProps = Omit<React.HTMLAttributes<HTMLDivElement | null>, 'children'|'title'> & {
+    children: React.ReactElement<unknown, string | React.JSXElementConstructor<unknown>>
+    title:string,
+    arrowStyle?: 'chevron'|'cared'
 };
 
 const AccordionItem: React.ForwardRefExoticComponent<IAccordionItemInnerProps & React.RefAttributes<HTMLDivElement | null>> = React.forwardRef<HTMLDivElement | null, IAccordionItemInnerProps>((props: IAccordionItemInnerProps, ref: React.ForwardedRef<HTMLDivElement | null>) => {
+    // Props
+    const { children,arrowStyle } = props;
+    // Context
+    const ctx = React.useContext<AccordionContextType>(AccordionContext);
+    if(ctx===undefined){ throw new Error('Missing AccordionContext inside AccordionItem'); }
+    // States
+    const [childrenHeight,setChildrenHeight] = React.useState(0);
+    // Refs 
+    const wRef = React.useRef<HTMLDivElement | null>(null);
+    const subscribed = React.useRef<boolean>(false);
+    
+    // Link Forwarded div Ref with real div Ref
+    React.useImperativeHandle<HTMLDivElement | null, HTMLDivElement | null>(ref, () => {
+        return wRef.current;
+    });
 
-  const { children, } = props;
-  const wRef = React.useRef<HTMLDivElement | null>(null);
+    // Subscribe / UnSubscribe
+    React.useLayoutEffect(() => {
+        const ref = wRef.current;
+        if (ref===null || subscribed.current) { return; }
+        ctx.subscribe(ref);
+        subscribed.current = true;
+        return () => {
+            if (ref===null || !subscribed.current) { return; }
+            ctx.unsubscribe(ref);
+            subscribed.current = false;
+        }
+    }, []);
+    
+    const onChildMountRef = React.useCallback((ref:HTMLDivElement|null) => {
+        if (ref===null || ref.scrollHeight===undefined) { return; }
+        setChildrenHeight(ref.scrollHeight)
+    },[])
 
-  // Link Forwarded div Ref with real div Ref
-  React.useImperativeHandle<HTMLDivElement | null, HTMLDivElement | null>(ref, () => {
-    return wRef.current;
-  });
+    const toggleChild = React.useCallback((event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+        const isSubscribed = subscribed.current && wRef.current!==null;
+        if(!isSubscribed){ return; } 
+        ctx.toggle(wRef.current!);
+    },[ctx])
 
-  const onChildMount = React.useCallback((ref:HTMLDivElement|null) => {
-    if (ref===null || ref.scrollHeight===undefined) { return; }
-    setChildrenHeight(ref.scrollHeight)
-  },[])
+    const isOpen=subscribed.current && wRef.current!==null && ctx.opened.has(wRef.current!);
 
-  const [childrenHeight,setChildrenHeight] = React.useState(0);
 
-  const ctx = React.useContext<AccordionContextType>(AccordionContext);
+    return (
+        //  style={{marginTop: index===0 ? 0 : undefined, marginBottom: index===ctx.length()-1 ? 0 : undefined}}
+        <div ref={wRef} className={`${css.accordion} ${isOpen ? css.accordionOpen : ''}`}>
+            <button className={css.header} onClick={toggleChild}>
+                <span className={css.title}>{props.title}</span>
+                <span className={css.arrowWrapper}>
+                    <span className={`${css.arrow} ${isOpen ? css.rotated : ''} ${css[arrowStyle ?? 'chevron']}`} />
+                </span>
+            </button>
 
-  const [index, setIndex] = React.useState<number | null>(null);
-
-  const isOpen=index!==null && ctx.openIndexes.includes(index);
-  React.useEffect(() => {
-    if(index!==null){ return }
-    const newIndex = ctx.subscribe();
-    setIndex(newIndex);
-  }, [ctx,index]);
-
-  React.useEffect(()=>{
-    return () => console.log('UNMOUNT')
-  },[])
-
-  return (
-    <div ref={wRef} className={`${css.accordion} ${isOpen ? css.accordionOpen : ''}`} key={index} style={{marginTop: index===0 ? 0 : undefined, marginBottom: index===ctx.length()-1 ? 0 : undefined}}
-    >
-      <button className={css.header} onClick={() => { if(index===null){ return; } ctx.toggle(index); }}>
-        <span className={css.title}>{props.title}</span>
-        <span className={css.arrowWrapper}>
-          <span className={`${css.arrow} ${isOpen ? css.rotated : ''} ${css[ctx.arrowStyle ?? 'chevron']}`} />
-        </span>
-      </button>
-
-      <div
-        className={`${css.content} ${isOpen ? css.expanded : ''}`}
-        style={{maxHeight: isOpen ? `${childrenHeight || 0}px` : '0px'}}
-        ref={onChildMount}
-      >
-        <div className={css.innerContent}>{children}</div>
-      </div>
-    </div>
-  );
+            <div className={`${css.content} ${isOpen ? css.expanded : ''}`} style={{maxHeight: isOpen ? `${childrenHeight || 0}px` : '0px'}} ref={onChildMountRef}>
+                <div className={css.innerContent}>{children}</div>
+            </div>
+        </div>
+    );
 });
-
-
-
 
 export type IAccordionItemProps = Omit<IAccordionItemInnerProps, 'index'>
 
 const Accordion = AccordionBase as React.ForwardRefExoticComponent<IAccordionProps & React.RefAttributes<HTMLDivElement>> & {
-  Item: React.ForwardRefExoticComponent<IAccordionItemProps & React.RefAttributes<HTMLDivElement | null>>;
+    Item: React.ForwardRefExoticComponent<IAccordionItemProps & React.RefAttributes<HTMLDivElement | null>>;
 };
 
 Accordion.Item = AccordionItem as React.ForwardRefExoticComponent<IAccordionItemProps & React.RefAttributes<HTMLDivElement | null>>;
