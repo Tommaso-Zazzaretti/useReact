@@ -177,7 +177,7 @@ const AccordionItem: React.ForwardRefExoticComponent<IAccordionItemInnerProps & 
                     </span>
                 </button>
 
-                <div className={`${css.content} ${isOpen ? css.expanded : ''}`} style={{maxHeight: isOpen ? `${height}px` : '0px'}} ref={onChildMountRef}>
+                <div ref={onChildMountRef} className={`${css.content} ${isOpen ? css.expanded : ''}`} style={{maxHeight: isOpen ? `${height}px` : '0px'}}>
                     <div className={css.innerContent}>{children}</div>
                 </div>
             </div>
