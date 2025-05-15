@@ -7,7 +7,6 @@ import css from './Accordion.module.css';
 type AccordionContextType = {
     level: number;
     opened: Set<HTMLDivElement>,
-    notify:(height:number) => void;
     toggleAPI:(element:HTMLDivElement) => void,
     subscribeAPI:(element:HTMLDivElement) => void;
     unsubscribeAPI:(element:HTMLDivElement) => void;
@@ -17,7 +16,6 @@ const AccordionContext = React.createContext<AccordionContextType>({
     level: -1,
     opened: new Set<HTMLDivElement>(),
     toggleAPI:()=>{},
-    notify:(height:number) => {},
     subscribeAPI:()=>{return; },
     unsubscribeAPI:()=>{return; }
 });
@@ -78,21 +76,15 @@ const AccordionBase: React.ForwardRefExoticComponent<IAccordionProps & React.Ref
         })
     },[]);
 
-    const notify = React.useCallback((childHeight:number) => {
-        if(level.current===0){ return; }
-        parentContext.notify(childHeight + (wRef.current?.scrollHeight ?? 0));
-    },[parentContext]);
-
     const ctx:AccordionContextType = React.useMemo<AccordionContextType>(()=>{
         return { 
             level:level.current,
             opened, 
             toggleAPI,
-            notify,
             subscribeAPI,
             unsubscribeAPI
         }
-    },[opened,subscribeAPI,unsubscribeAPI,notify,toggleAPI])
+    },[opened,subscribeAPI,unsubscribeAPI,toggleAPI])
 
     return (
         <AccordionContext.Provider value={ctx}>
