@@ -7,19 +7,19 @@ import css from './Accordion.module.css';
 type AccordionContextType = {
     level: number;
     opened: Set<HTMLDivElement>,
-    toggle:(element:HTMLDivElement) => void,
     notify:(height:number) => void;
-    subscribe:(element:HTMLDivElement) => void;
-    unsubscribe:(element:HTMLDivElement) => void;
+    toggleAPI:(element:HTMLDivElement) => void,
+    subscribeAPI:(element:HTMLDivElement) => void;
+    unsubscribeAPI:(element:HTMLDivElement) => void;
 }
 
 const AccordionContext = React.createContext<AccordionContextType>({
     level: -1,
     opened: new Set<HTMLDivElement>(),
-    toggle:()=>{},
+    toggleAPI:()=>{},
     notify:(height:number) => {},
-    subscribe:()=>{return; },
-    unsubscribe:()=>{return; }
+    subscribeAPI:()=>{return; },
+    unsubscribeAPI:()=>{return; }
 });
 
 
@@ -49,7 +49,7 @@ const AccordionBase: React.ForwardRefExoticComponent<IAccordionProps & React.Ref
         return wRef.current;
     });
 
-    const toggle = (element: HTMLDivElement) => {
+    const toggleAPI = React.useCallback((element: HTMLDivElement) => {
         setOpened(p => {
             if(p.has(element)){
                 const c = new Set<HTMLDivElement>(p);
@@ -63,33 +63,36 @@ const AccordionBase: React.ForwardRefExoticComponent<IAccordionProps & React.Ref
             c.add(element);
             return c;
         });
-    }
+    },[singleOpen]);
 
-    const subscribe = (element:HTMLDivElement) => {
+    const subscribeAPI = React.useCallback((element:HTMLDivElement) => {
         iRef.current.add(element);
-    };
+    },[]);
 
-    const unsubscribe = (element:HTMLDivElement) => {
+    const unsubscribeAPI = React.useCallback((element:HTMLDivElement) => {
         iRef.current.delete(element);
         setOpened(p=>{
             const c = new Set(p); 
             c.delete(element); 
             return c; 
         })
-    };
+    },[]);
 
-    const notify = (childHeight:number) => {
-        parentContext?.notify(childHeight + (wRef.current?.scrollHeight ?? 0));
-    };
+    const notify = React.useCallback((childHeight:number) => {
+        if(level.current===0){ return; }
+        parentContext.notify(childHeight + (wRef.current?.scrollHeight ?? 0));
+    },[parentContext]);
 
-    const ctx:AccordionContextType = { 
-        level:level.current,
-        opened, 
-        toggle,
-        notify,
-        subscribe,
-        unsubscribe
-    }
+    const ctx:AccordionContextType = React.useMemo<AccordionContextType>(()=>{
+        return { 
+            level:level.current,
+            opened, 
+            toggleAPI,
+            notify,
+            subscribeAPI,
+            unsubscribeAPI
+        }
+    },[opened,subscribeAPI,unsubscribeAPI,notify,toggleAPI])
 
     return (
         <AccordionContext.Provider value={ctx}>
@@ -111,10 +114,9 @@ type IAccordionItemInnerProps = Omit<React.HTMLAttributes<HTMLDivElement | null>
 
 const AccordionItem: React.ForwardRefExoticComponent<IAccordionItemInnerProps & React.RefAttributes<HTMLDivElement | null>> = React.forwardRef<HTMLDivElement | null, IAccordionItemInnerProps>((props: IAccordionItemInnerProps, ref: React.ForwardedRef<HTMLDivElement | null>) => {
     // Props
-    const { children,arrowStyle } = props;
+    const { children,arrowStyle,title } = props;
     // Context
-    const ctx = React.useContext<AccordionContextType>(AccordionContext);
-    if(ctx===undefined){ throw new Error('Missing AccordionContext inside AccordionItem'); }
+    const {subscribeAPI,unsubscribeAPI,toggleAPI,opened} = React.useContext<AccordionContextType>(AccordionContext);
     // States
     const [childrenHeight,setChildrenHeight] = React.useState(0);
     // Refs 
@@ -130,14 +132,14 @@ const AccordionItem: React.ForwardRefExoticComponent<IAccordionItemInnerProps & 
     React.useLayoutEffect(() => {
         const ref = wRef.current;
         if (ref===null || subscribed.current) { return; }
-        ctx.subscribe(ref);
+        subscribeAPI(ref);
         subscribed.current = true;
         return () => {
             if (ref===null || !subscribed.current) { return; }
-            ctx.unsubscribe(ref);
+            unsubscribeAPI(ref);
             subscribed.current = false;
         }
-    }, []);
+    }, [subscribeAPI,unsubscribeAPI]);
     
     const onChildMountRef = React.useCallback((ref:HTMLDivElement|null) => {
         if (ref===null || ref.scrollHeight===undefined) { return; }
@@ -147,17 +149,16 @@ const AccordionItem: React.ForwardRefExoticComponent<IAccordionItemInnerProps & 
     const toggleChild = React.useCallback((event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         const isSubscribed = subscribed.current && wRef.current!==null;
         if(!isSubscribed){ return; } 
-        ctx.toggle(wRef.current!);
-    },[ctx])
+        toggleAPI(wRef.current!);
+    },[toggleAPI])
 
-    const isOpen=subscribed.current && wRef.current!==null && ctx.opened.has(wRef.current!);
-
+    const isOpen=subscribed.current && wRef.current!==null && opened.has(wRef.current!);
 
     return (
         //  style={{marginTop: index===0 ? 0 : undefined, marginBottom: index===ctx.length()-1 ? 0 : undefined}}
         <div ref={wRef} className={`${css.accordion} ${isOpen ? css.accordionOpen : ''}`}>
             <button className={css.header} onClick={toggleChild}>
-                <span className={css.title}>{props.title}</span>
+                <span className={css.title}>{title}</span>
                 <span className={css.arrowWrapper}>
                     <span className={`${css.arrow} ${isOpen ? css.rotated : ''} ${css[arrowStyle ?? 'chevron']}`} />
                 </span>

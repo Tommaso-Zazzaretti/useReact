@@ -58,6 +58,9 @@ const App:React.FC<{}> = () => {
             
           </Accordion>
 
+          <Accordion.Item title="Section5">
+            <div>Contenuto 1</div>
+          </Accordion.Item>
         </div>
       </Splitter>
 
