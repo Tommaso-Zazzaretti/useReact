@@ -30,20 +30,20 @@ const App:React.FC<{}> = () => {
           <br></br>
           <br></br>
           <Accordion singleOpen>
-            <Accordion.Item title="Section1" ref={(ref)=>{console.log(ref)}}>
+            <Accordion.Item title="Section1">
               <div>Contenuto 1</div>
             </Accordion.Item>
             <Accordion.Item title="Section2">
-              <Accordion singleOpen>
-                <Accordion.Item title="Section1" ref={(ref)=>{console.log(ref)}}>
+              <Accordion singleOpen={false}>
+                <Accordion.Item title="Section1">
                   <div>Contenuto 1</div>
                 </Accordion.Item>
                 <Accordion.Item title="Section2">
                   <div>Contenuto 1</div>
-                </Accordion.Item>
-                <Accordion.Item title="Section3">
+                </Accordion.Item> 
+                 <Accordion.Item title="Section3">
                   <div>Contenuto 1</div>
-                </Accordion.Item>
+                </Accordion.Item> 
                 <Accordion.Item title="Section4">
                   <div>Contenuto 1</div>
                 </Accordion.Item>
@@ -57,10 +57,6 @@ const App:React.FC<{}> = () => {
             </Accordion.Item>
             
           </Accordion>
-
-          <Accordion.Item title="Section5">
-            <div>Contenuto 1</div>
-          </Accordion.Item>
         </div>
       </Splitter>
 
