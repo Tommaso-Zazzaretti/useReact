@@ -35,11 +35,11 @@ const AccordionBase: React.ForwardRefExoticComponent<IAccordionProps & React.Ref
     // Props
     const {children,singleOpen, ...divProps } = props;
     // Context
-    const parentContext = React.useContext(AccordionContext);
+    const parentRootContext = React.useContext(AccordionContext);     // To Get Level+1
     // States 
     const [opened, setOpened] = React.useState<Set<HTMLDivElement>>(new Set());
     // Refs
-    const level = React.useRef<number>(parentContext ? parentContext.level + 1 : 0);
+    const level = React.useRef<number>(parentRootContext ? parentRootContext.level + 1 : 0);
     const iRef  = React.useRef<Set<HTMLDivElement>>(new Set());
     const wRef  = React.useRef<HTMLDivElement|null>(null);
       // Forward Ref
@@ -95,6 +95,18 @@ const AccordionBase: React.ForwardRefExoticComponent<IAccordionProps & React.Ref
     )
 });
 
+
+       /*---------+
+        | CONTEXT |
+        +---------*/
+type AccordionItemContextType = {
+    notifyAPI:(delta:number) => void
+}
+
+const AccordionItemContext = React.createContext<AccordionItemContextType>({
+    notifyAPI:(delta:number) => {}
+});
+
        /*----------------+
         | ACCORDION ITEM |
         +----------------*/
@@ -109,11 +121,15 @@ const AccordionItem: React.ForwardRefExoticComponent<IAccordionItemInnerProps & 
     const { children,arrowStyle,title } = props;
     // Context
     const {subscribeAPI,unsubscribeAPI,toggleAPI,opened} = React.useContext<AccordionContextType>(AccordionContext);
+    const {notifyAPI} = React.useContext<AccordionItemContextType>(AccordionItemContext);
     // States
-    const [childrenHeight,setChildrenHeight] = React.useState(0);
+    const [height,setHeight] = React.useState(0);
     // Refs 
     const wRef = React.useRef<HTMLDivElement | null>(null);
     const subscribed = React.useRef<boolean>(false);
+    // Derived States
+    const isOpen=React.useMemo(()=>{ return subscribed.current && wRef.current!==null && opened.has(wRef.current!);},[opened])
+    
     
     // Link Forwarded div Ref with real div Ref
     React.useImperativeHandle<HTMLDivElement | null, HTMLDivElement | null>(ref, () => {
@@ -135,31 +151,37 @@ const AccordionItem: React.ForwardRefExoticComponent<IAccordionItemInnerProps & 
     
     const onChildMountRef = React.useCallback((ref:HTMLDivElement|null) => {
         if (ref===null || ref.scrollHeight===undefined) { return; }
-        setChildrenHeight(ref.scrollHeight)
+        setHeight(ref.scrollHeight)
+    },[])
+
+    const onHeightChange = React.useCallback((delta:number)=>{
+        setHeight(p=>p+delta);
     },[])
 
     const toggleChild = React.useCallback((event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         const isSubscribed = subscribed.current && wRef.current!==null;
         if(!isSubscribed){ return; } 
         toggleAPI(wRef.current!);
-    },[toggleAPI])
+        notifyAPI((isOpen?-1:+1)*(height+32)) // MARGIN
+    },[toggleAPI,notifyAPI,isOpen,height])
 
-    const isOpen=subscribed.current && wRef.current!==null && opened.has(wRef.current!);
 
     return (
         //  style={{marginTop: index===0 ? 0 : undefined, marginBottom: index===ctx.length()-1 ? 0 : undefined}}
-        <div ref={wRef} className={`${css.accordion} ${isOpen ? css.accordionOpen : ''}`}>
-            <button className={css.header} onClick={toggleChild}>
-                <span className={css.title}>{title}</span>
-                <span className={css.arrowWrapper}>
-                    <span className={`${css.arrow} ${isOpen ? css.rotated : ''} ${css[arrowStyle ?? 'chevron']}`} />
-                </span>
-            </button>
+        <AccordionItemContext.Provider value={{notifyAPI:onHeightChange}}>
+            <div ref={wRef} className={`${css.accordion} ${isOpen ? css.accordionOpen : ''}`}>
+                <button className={css.header} onClick={toggleChild}>
+                    <span className={css.title}>{title}</span>
+                    <span className={css.arrowWrapper}>
+                        <span className={`${css.arrow} ${isOpen ? css.rotated : ''} ${css[arrowStyle ?? 'chevron']}`} />
+                    </span>
+                </button>
 
-            <div className={`${css.content} ${isOpen ? css.expanded : ''}`} style={{maxHeight: isOpen ? `${childrenHeight || 0}px` : '0px'}} ref={onChildMountRef}>
-                <div className={css.innerContent}>{children}</div>
+                <div className={`${css.content} ${isOpen ? css.expanded : ''}`} style={{maxHeight: isOpen ? `${height}px` : '0px'}} ref={onChildMountRef}>
+                    <div className={css.innerContent}>{children}</div>
+                </div>
             </div>
-        </div>
+        </AccordionItemContext.Provider>
     );
 });
 
