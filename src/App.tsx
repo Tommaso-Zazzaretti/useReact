@@ -14,6 +14,13 @@ const App:React.FC<{}> = () => {
     scrollerRef.scrollTo({top,left});
   }, []);
 
+
+  const [show,setShow] = React.useState<boolean>(false);
+
+  React.useEffect(()=>{
+    setTimeout(()=>setShow(p=>!p),6000);
+  },[show])
+  
   return (<Fragment>
     <Navbar/>
     <Splitter dProps={{size:1, className: css.divider}} flexDirection="row" ratio={50} min1="30%" min2="10%" className={css.splitter}>
@@ -33,65 +40,89 @@ const App:React.FC<{}> = () => {
             <AccordionTree.Item title="Section1">
               <div>Contenuto 1</div>
             </AccordionTree.Item>
+
             <AccordionTree.Item title="Section2">
-              <div>
                 <AccordionTree singleOpen={false}>
+
                   <AccordionTree.Item title="Section2.1">
                       <AccordionTree singleOpen={false}>
+
                         <AccordionTree.Item title="Section2.1.1">
                           <div>Contenuto 2.1.1</div>
                         </AccordionTree.Item>
+
                         <AccordionTree.Item title="Section2.1.2">
                           <div>Contenuto 2.1.2</div>
                         </AccordionTree.Item> 
-                        <AccordionTree.Item title="Section2.1.3">
-                          <AccordionTree singleOpen={true}>
-                            <AccordionTree.Item title="Section2.1.3.1">
-                              <div>Contenuto 2.1.3.1</div>
-                            </AccordionTree.Item>
-                            <AccordionTree.Item title="Section2.1.3.2">
-                              <div>Contenuto 2.1.3.2</div>
-                            </AccordionTree.Item> 
-                            <AccordionTree.Item title="Section2.1.3.3">
-                              <div>Contenuto 2.1.3.3</div>
-                            </AccordionTree.Item> 
-                            <AccordionTree.Item title="Section2.1.3.4">
-                              <div>Contenuto 2.1.3.4</div>
-                            </AccordionTree.Item>
-                            <AccordionTree.Item title="Section2.1.3.5">
-                              <div>Contenuto 2.1.3.5</div>
-                            </AccordionTree.Item>
-                            <AccordionTree.Item title="Section2.1.3.6">
-                              <div>Contenuto 2.1.3.6</div>
-                            </AccordionTree.Item> 
-                            <AccordionTree.Item title="Section2.1.3.7">
-                              <div>Contenuto 2.1.3.7</div>
-                            </AccordionTree.Item> 
-                            <AccordionTree.Item title="Section2.1.3.8">
-                              <div>Contenuto 2.1.3.8</div>
-                            </AccordionTree.Item>
-                          </AccordionTree>
-                        </AccordionTree.Item> 
+
+                        <React.Fragment>
+                          {show && 
+                          <AccordionTree.Item title="Section2.1.3">
+                            <AccordionTree singleOpen={false}>
+
+                              <AccordionTree.Item title="Section2.1.3.1">
+                                <div>Contenuto 2.1.3.1</div>
+                              </AccordionTree.Item>
+
+                              <AccordionTree.Item title="Section2.1.3.2">
+                                <div>Contenuto 2.1.3.2</div>
+                              </AccordionTree.Item> 
+
+                              <AccordionTree.Item title="Section2.1.3.3">
+                                <div>Contenuto 2.1.3.3</div>
+                              </AccordionTree.Item> 
+
+                              <AccordionTree.Item title="Section2.1.3.4">
+                                <div>Contenuto 2.1.3.4</div>
+                              </AccordionTree.Item>
+
+                              <AccordionTree.Item title="Section2.1.3.5">
+                                <div>Contenuto 2.1.3.5</div>
+                              </AccordionTree.Item>
+
+                              <AccordionTree.Item title="Section2.1.3.6">
+                                <div>Contenuto 2.1.3.6</div>
+                              </AccordionTree.Item> 
+
+                              <AccordionTree.Item title="Section2.1.3.7">
+                                <div>Contenuto 2.1.3.7</div>
+                              </AccordionTree.Item> 
+
+                              <AccordionTree.Item title="Section2.1.3.8">
+                                <div>Contenuto 2.1.3.8</div>
+                              </AccordionTree.Item>
+                              
+                            </AccordionTree>
+                          </AccordionTree.Item> 
+                          }
+                        </React.Fragment>
+
                         <AccordionTree.Item title="Section2.1.4">
                           <div>Contenuto 2.1.4</div>
                         </AccordionTree.Item>
+
                       </AccordionTree>
                   </AccordionTree.Item>
+
                   <AccordionTree.Item title="Section2.2">
                     <div>Contenuto 2.2</div>
                   </AccordionTree.Item> 
+
                   <AccordionTree.Item title="Section2.3">
                     <div>Contenuto 2.3</div>
                   </AccordionTree.Item> 
+                  
                   <AccordionTree.Item title="Section2.4">
                     <div>Contenuto 2.4</div>
                   </AccordionTree.Item>
+
                 </AccordionTree>
-              </div>
             </AccordionTree.Item>
+
             <AccordionTree.Item title="Section3">
               <div>Contenuto 3</div>
             </AccordionTree.Item>
+
              <AccordionTree.Item title="Section4">
               <div>Contenuto 4</div>
             </AccordionTree.Item>
