@@ -1,10 +1,10 @@
 import React from "react";
-import css from './Accordion.module.css';
+import css from './AccordionTree.module.css';
 
        /*---------+
         | CONTEXT |
         +---------*/
-type AccordionContextType = {
+type AccordionTreeContextType = {
     level: number;
     opened: Set<HTMLDivElement>,
     toggleAPI:(element:HTMLDivElement) => void,
@@ -12,7 +12,7 @@ type AccordionContextType = {
     unsubscribeAPI:(element:HTMLDivElement) => void;
 }
 
-const AccordionContext = React.createContext<AccordionContextType>({
+const AccordionTreeContext = React.createContext<AccordionTreeContextType>({
     level: -1,
     opened: new Set<HTMLDivElement>(),
     toggleAPI:()=>{},
@@ -24,18 +24,18 @@ const AccordionContext = React.createContext<AccordionContextType>({
        /*-----------+
         | ACCORDION |
         +-----------*/
-export type IAccordionProps = Omit<React.HTMLAttributes<HTMLDivElement>, 'children'> & {
+export type IAccordionTreeProps = Omit<React.HTMLAttributes<HTMLDivElement>, 'children'> & {
   children: 
-    | React.ReactElement<IAccordionItemProps, string | React.JSXElementConstructor<typeof Accordion.Item>> 
-    | React.ReactElement<IAccordionItemProps, string | React.JSXElementConstructor<typeof Accordion.Item>>[]
+    | React.ReactElement<IAccordionTreeItemProps, string | React.JSXElementConstructor<typeof AccordionTree.Item>> 
+    | React.ReactElement<IAccordionTreeItemProps, string | React.JSXElementConstructor<typeof AccordionTree.Item>>[]
   singleOpen?: boolean
 };
 
-const AccordionBase: React.ForwardRefExoticComponent<IAccordionProps & React.RefAttributes<HTMLDivElement | null>> = React.forwardRef<HTMLDivElement | null, IAccordionProps>((props: IAccordionProps, ref: React.ForwardedRef<HTMLDivElement | null>) => {
+const AccordionTreeBase: React.ForwardRefExoticComponent<IAccordionTreeProps & React.RefAttributes<HTMLDivElement | null>> = React.forwardRef<HTMLDivElement | null, IAccordionTreeProps>((props: IAccordionTreeProps, ref: React.ForwardedRef<HTMLDivElement | null>) => {
     // Props
     const {children,singleOpen, ...divProps } = props;
     // Context
-    const parentRootContext = React.useContext(AccordionContext);     // To Get Level+1
+    const parentRootContext = React.useContext(AccordionTreeContext);     // To Get Level+1
     // States 
     const [opened, setOpened] = React.useState<Set<HTMLDivElement>>(new Set());
     // Refs
@@ -76,7 +76,7 @@ const AccordionBase: React.ForwardRefExoticComponent<IAccordionProps & React.Ref
         })
     },[]);
 
-    const ctx:AccordionContextType = React.useMemo<AccordionContextType>(()=>{
+    const ctx:AccordionTreeContextType = React.useMemo<AccordionTreeContextType>(()=>{
         return { 
             level:level.current,
             opened, 
@@ -87,11 +87,11 @@ const AccordionBase: React.ForwardRefExoticComponent<IAccordionProps & React.Ref
     },[opened,subscribeAPI,unsubscribeAPI,toggleAPI])
 
     return (
-        <AccordionContext.Provider value={ctx}>
+        <AccordionTreeContext.Provider value={ctx}>
             <div ref={wRef} {...divProps} className={`${divProps?.className ?? ''} ${css.accordionGroup}`}>
                 {children}
             </div>
-        </AccordionContext.Provider>
+        </AccordionTreeContext.Provider>
     )
 });
 
@@ -99,29 +99,29 @@ const AccordionBase: React.ForwardRefExoticComponent<IAccordionProps & React.Ref
        /*---------+
         | CONTEXT |
         +---------*/
-type AccordionItemContextType = {
+type AccordionTreeItemContextType = {
     notifyAPI:(delta:number) => void
 }
 
-const AccordionItemContext = React.createContext<AccordionItemContextType>({
+const AccordionTreeItemContext = React.createContext<AccordionTreeItemContextType>({
     notifyAPI:(delta:number) => {}
 });
 
        /*----------------+
         | ACCORDION ITEM |
         +----------------*/
-type IAccordionItemInnerProps = Omit<React.HTMLAttributes<HTMLDivElement | null>, 'children'|'title'> & {
+type IAccordionTreeItemInnerProps = Omit<React.HTMLAttributes<HTMLDivElement | null>, 'children'|'title'> & {
     children: React.ReactElement<unknown, string | React.JSXElementConstructor<unknown>>
     title:string,
     arrowStyle?: 'chevron'|'cared'
 };
 
-const AccordionItem: React.ForwardRefExoticComponent<IAccordionItemInnerProps & React.RefAttributes<HTMLDivElement | null>> = React.forwardRef<HTMLDivElement | null, IAccordionItemInnerProps>((props: IAccordionItemInnerProps, ref: React.ForwardedRef<HTMLDivElement | null>) => {
+const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInnerProps & React.RefAttributes<HTMLDivElement | null>> = React.forwardRef<HTMLDivElement | null, IAccordionTreeItemInnerProps>((props: IAccordionTreeItemInnerProps, ref: React.ForwardedRef<HTMLDivElement | null>) => {
     // Props
     const { children,arrowStyle,title } = props;
     // Context
-    const {subscribeAPI,unsubscribeAPI,toggleAPI,opened} = React.useContext<AccordionContextType>(AccordionContext);
-    const {notifyAPI} = React.useContext<AccordionItemContextType>(AccordionItemContext);
+    const {subscribeAPI,unsubscribeAPI,toggleAPI,opened} = React.useContext<AccordionTreeContextType>(AccordionTreeContext);
+    const {notifyAPI} = React.useContext<AccordionTreeItemContextType>(AccordionTreeItemContext);
     // States
     const [height,setHeight] = React.useState(0);
     // Refs 
@@ -156,7 +156,8 @@ const AccordionItem: React.ForwardRefExoticComponent<IAccordionItemInnerProps & 
 
     const onHeightChange = React.useCallback((delta:number)=>{
         setHeight(p=>p+delta);
-    },[])
+        notifyAPI(delta) // RECURSIVE STEP
+    },[notifyAPI])
 
     const toggleChild = React.useCallback((event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         const isSubscribed = subscribed.current && wRef.current!==null;
@@ -175,8 +176,8 @@ const AccordionItem: React.ForwardRefExoticComponent<IAccordionItemInnerProps & 
 
     return (
         //  style={{marginTop: index===0 ? 0 : undefined, marginBottom: index===ctx.length()-1 ? 0 : undefined}}
-        <AccordionItemContext.Provider value={{notifyAPI:onHeightChange}}>
-            <div ref={wRef} className={`${css.accordion} ${isOpen ? css.accordionOpen : ''}`}>
+        <AccordionTreeItemContext.Provider value={{notifyAPI:onHeightChange}}>
+            <div id={props.title} ref={wRef} className={`${css.accordion} ${isOpen ? css.accordionOpen : ''}`}>
                 <button className={css.header} onClick={toggleChild}>
                     <span className={css.title}>{title}</span>
                     <span className={css.arrowWrapper}>
@@ -188,16 +189,16 @@ const AccordionItem: React.ForwardRefExoticComponent<IAccordionItemInnerProps & 
                     <div className={css.innerContent}>{children}</div>
                 </div>
             </div>
-        </AccordionItemContext.Provider>
+        </AccordionTreeItemContext.Provider>
     );
 });
 
-export type IAccordionItemProps = Omit<IAccordionItemInnerProps, 'index'>
+export type IAccordionTreeItemProps = Omit<IAccordionTreeItemInnerProps, 'index'>
 
-const Accordion = AccordionBase as React.ForwardRefExoticComponent<IAccordionProps & React.RefAttributes<HTMLDivElement>> & {
-    Item: React.ForwardRefExoticComponent<IAccordionItemProps & React.RefAttributes<HTMLDivElement | null>>;
+const AccordionTree = AccordionTreeBase as React.ForwardRefExoticComponent<IAccordionTreeProps & React.RefAttributes<HTMLDivElement>> & {
+    Item: React.ForwardRefExoticComponent<IAccordionTreeItemProps & React.RefAttributes<HTMLDivElement | null>>;
 };
 
-Accordion.Item = AccordionItem as React.ForwardRefExoticComponent<IAccordionItemProps & React.RefAttributes<HTMLDivElement | null>>;
+AccordionTree.Item = AccordionTreeItem as React.ForwardRefExoticComponent<IAccordionTreeItemProps & React.RefAttributes<HTMLDivElement | null>>;
 
-export default Accordion;
+export default AccordionTree;

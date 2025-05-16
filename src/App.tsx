@@ -5,7 +5,7 @@ import css from './App.module.css'
 import BurgerButton from './components/BurgerButton/BurgerButton';
 import Navbar from './components/Navbar/Navbar';
 import { Modal } from './components/Modal/Modal';
-import Accordion from './components/Accordion/Accordion';
+import AccordionTree from './components/AccordionTree/AccordionTree';
 
 const App:React.FC<{}> = () => {
 
@@ -26,37 +26,77 @@ const App:React.FC<{}> = () => {
 
       <Splitter dProps={{size:0}} flexDirection="column" ratio={10} min1="20%" min2="10%">
         <div style={{backgroundColor:'#F1F9F9', width:'100%', height:'100%'}}>Left Top content</div>
-        <div style={{backgroundColor:'#EEEEFF', width:'100%', height:'100%'}}>
+        <div style={{backgroundColor:'#EEEEFF', width:'100%', height:'100%',overflow:'auto'}}>
           <br></br>
           <br></br>
-          <Accordion singleOpen>
-            <Accordion.Item title="Section1">
+          <AccordionTree singleOpen>
+            <AccordionTree.Item title="Section1">
               <div>Contenuto 1</div>
-            </Accordion.Item>
-            <Accordion.Item title="Section2">
-              <Accordion singleOpen={false}>
-                <Accordion.Item title="Section1">
-                  <div>Contenuto 1</div>
-                </Accordion.Item>
-                <Accordion.Item title="Section2">
-                  <div>Contenuto 1</div>
-                </Accordion.Item> 
-                 <Accordion.Item title="Section3">
-                  <div>Contenuto 1</div>
-                </Accordion.Item> 
-                <Accordion.Item title="Section4">
-                  <div>Contenuto 1</div>
-                </Accordion.Item>
-              </Accordion>
-            </Accordion.Item>
-            <Accordion.Item title="Section3">
-              <div>Contenuto 1</div>
-            </Accordion.Item>
-             <Accordion.Item title="Section4">
-              <div>Contenuto 1</div>
-            </Accordion.Item>
+            </AccordionTree.Item>
+            <AccordionTree.Item title="Section2">
+              <div>
+                <AccordionTree singleOpen={false}>
+                  <AccordionTree.Item title="Section2.1">
+                      <AccordionTree singleOpen={false}>
+                        <AccordionTree.Item title="Section2.1.1">
+                          <div>Contenuto 2.1.1</div>
+                        </AccordionTree.Item>
+                        <AccordionTree.Item title="Section2.1.2">
+                          <div>Contenuto 2.1.2</div>
+                        </AccordionTree.Item> 
+                        <AccordionTree.Item title="Section2.1.3">
+                          <AccordionTree singleOpen={true}>
+                            <AccordionTree.Item title="Section2.1.3.1">
+                              <div>Contenuto 2.1.3.1</div>
+                            </AccordionTree.Item>
+                            <AccordionTree.Item title="Section2.1.3.2">
+                              <div>Contenuto 2.1.3.2</div>
+                            </AccordionTree.Item> 
+                            <AccordionTree.Item title="Section2.1.3.3">
+                              <div>Contenuto 2.1.3.3</div>
+                            </AccordionTree.Item> 
+                            <AccordionTree.Item title="Section2.1.3.4">
+                              <div>Contenuto 2.1.3.4</div>
+                            </AccordionTree.Item>
+                            <AccordionTree.Item title="Section2.1.3.5">
+                              <div>Contenuto 2.1.3.5</div>
+                            </AccordionTree.Item>
+                            <AccordionTree.Item title="Section2.1.3.6">
+                              <div>Contenuto 2.1.3.6</div>
+                            </AccordionTree.Item> 
+                            <AccordionTree.Item title="Section2.1.3.7">
+                              <div>Contenuto 2.1.3.7</div>
+                            </AccordionTree.Item> 
+                            <AccordionTree.Item title="Section2.1.3.8">
+                              <div>Contenuto 2.1.3.8</div>
+                            </AccordionTree.Item>
+                          </AccordionTree>
+                        </AccordionTree.Item> 
+                        <AccordionTree.Item title="Section2.1.4">
+                          <div>Contenuto 2.1.4</div>
+                        </AccordionTree.Item>
+                      </AccordionTree>
+                  </AccordionTree.Item>
+                  <AccordionTree.Item title="Section2.2">
+                    <div>Contenuto 2.2</div>
+                  </AccordionTree.Item> 
+                  <AccordionTree.Item title="Section2.3">
+                    <div>Contenuto 2.3</div>
+                  </AccordionTree.Item> 
+                  <AccordionTree.Item title="Section2.4">
+                    <div>Contenuto 2.4</div>
+                  </AccordionTree.Item>
+                </AccordionTree>
+              </div>
+            </AccordionTree.Item>
+            <AccordionTree.Item title="Section3">
+              <div>Contenuto 3</div>
+            </AccordionTree.Item>
+             <AccordionTree.Item title="Section4">
+              <div>Contenuto 4</div>
+            </AccordionTree.Item>
             
-          </Accordion>
+          </AccordionTree>
         </div>
       </Splitter>
 
