@@ -147,7 +147,9 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
     const subscribeRef = React.useRef<()=>void>(()=>{
         const ref = wRef.current;
         if (ref===null || subscribed.current) { return; }
-        if(isParentOpen()) { notifyAPI(ref.scrollHeight+(isOpenRef.current?32:0)); }
+        const h = ref.scrollHeight+(isOpenRef.current?32:0);
+        if(isParentOpen()) { notifyAPI(h); }
+        else { setHeight(p=>p+h); }
         subscribeAPI(ref);
         subscribed.current = true;
     })
@@ -155,7 +157,9 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
     const unsubscribeRef = React.useRef<()=>void>(()=>{
         const ref = wRef.current;
         if (ref===null || !subscribed.current) { return; }
-        if(!isParentUnmounting() && isParentOpen()){ notifyAPI(-(ref.scrollHeight+(isOpenRef.current?32:0))); }
+        const h = -(ref.scrollHeight+(isOpenRef.current?32:0));
+        if(!isParentUnmounting() && isParentOpen()){ notifyAPI(h); }
+        if(!isParentUnmounting() && !isParentOpen()){ setHeight(p=>p+h); }
         isOnUnmounting.current=true;
         unsubscribeAPI(ref);
         subscribed.current = false;
