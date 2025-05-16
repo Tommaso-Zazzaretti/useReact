@@ -101,10 +101,14 @@ const AccordionTreeBase: React.ForwardRefExoticComponent<IAccordionTreeProps & R
         +---------*/
 type AccordionTreeItemContextType = {
     notifyAPI:(delta:number) => void
+    isParentUnmounting: () => boolean
+    isParentOpen: () => boolean
 }
 
 const AccordionTreeItemContext = React.createContext<AccordionTreeItemContextType>({
-    notifyAPI:(delta:number) => {}
+    notifyAPI:(delta:number) => {},
+    isParentUnmounting: () => false,
+    isParentOpen: () => false
 });
 
        /*----------------+
@@ -121,7 +125,7 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
     const { children,arrowStyle,title } = props;
     // Context
     const {subscribeAPI,unsubscribeAPI,toggleAPI,opened} = React.useContext<AccordionTreeContextType>(AccordionTreeContext);
-    const {notifyAPI} = React.useContext<AccordionTreeItemContextType>(AccordionTreeItemContext);
+    const {notifyAPI,isParentOpen,isParentUnmounting} = React.useContext<AccordionTreeItemContextType>(AccordionTreeItemContext);
     // States
     const [height,setHeight] = React.useState(0);
     // Refs 
@@ -137,27 +141,34 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
     });
 
     // Subscribe / UnSubscribe
-    React.useLayoutEffect(() => {
+    const isOpenRef = React.useRef(false);
+    React.useEffect(()=>{ isOpenRef.current=isOpen; },[isOpen]);
+
+    const subscribeRef = React.useRef<()=>void>(()=>{
         const ref = wRef.current;
         if (ref===null || subscribed.current) { return; }
+        if(isParentOpen()) { notifyAPI(ref.scrollHeight+(isOpenRef.current?32:0)); }
         subscribeAPI(ref);
         subscribed.current = true;
-        return () => {
-            if (ref===null || !subscribed.current) { return; }
-            unsubscribeAPI(ref);
-            subscribed.current = false;
-        }
-    }, [subscribeAPI,unsubscribeAPI]);
+    })
+
+    const unsubscribeRef = React.useRef<()=>void>(()=>{
+        const ref = wRef.current;
+        if (ref===null || !subscribed.current) { return; }
+        if(!isParentUnmounting() && isParentOpen()){ notifyAPI(-(ref.scrollHeight+(isOpenRef.current?32:0))); }
+        isOnUnmounting.current=true;
+        unsubscribeAPI(ref);
+        subscribed.current = false;
+    })
+    React.useLayoutEffect(() => {
+        const [subscribe,unsubscribe] = [subscribeRef.current, unsubscribeRef.current];
+        subscribe(); return () => { unsubscribe(); }
+    }, []);
     
     const onChildMountRef = React.useCallback((ref:HTMLDivElement|null) => {
         if (ref===null || ref.scrollHeight===undefined) { return; }
         setHeight(ref.scrollHeight)
     },[])
-
-    const onHeightChange = React.useCallback((delta:number)=>{
-        setHeight(p=>p+delta);
-        notifyAPI(delta) // RECURSIVE STEP
-    },[notifyAPI])
 
     const toggleChild = React.useCallback((event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         const isSubscribed = subscribed.current && wRef.current!==null;
@@ -165,18 +176,42 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
         toggleAPI(wRef.current!);
     },[toggleAPI])
 
-    // When isOpen state change => notify height change to parent Item
-    const notifyRef = React.useRef<boolean>(isOpen);
+    // When isOpen state change => notify height change to parent Item => parent change isOpen => notifyAPI height change to root
+    const notifySyncRef = React.useRef<boolean>(isOpen);
     React.useEffect(()=>{
-        if(notifyRef.current===isOpen){ return; }
+        if(notifySyncRef.current===isOpen){ return; }
         notifyAPI((isOpen?+1:-1)*(height+32)) // MARGIN
-        notifyRef.current = isOpen;
+        notifySyncRef.current = isOpen;
     },[height,notifyAPI,isOpen])
 
 
+    // Context methods
+    const notifyImplementation = React.useCallback((delta:number)=>{
+        setHeight(p=>p+delta);
+        notifyAPI(delta) // RECURSIVE STEP
+    },[notifyAPI])
+
+    const isParentOpenImplementation = React.useCallback(()=>{
+        return isOpenRef.current;
+    },[])
+
+    const isParentUnmountingImplementation = React.useCallback(()=>{
+        return isOnUnmounting.current;
+    },[])
+    const isOnUnmounting = React.useRef<boolean>(false);
+
+
+    const ctx:AccordionTreeItemContextType = React.useMemo<AccordionTreeItemContextType>(()=>{
+        return {
+            notifyAPI: notifyImplementation,
+            isParentOpen: isParentOpenImplementation,
+            isParentUnmounting: isParentUnmountingImplementation,
+        }
+    },[notifyImplementation, isParentUnmountingImplementation, isParentOpenImplementation])
+
     return (
         //  style={{marginTop: index===0 ? 0 : undefined, marginBottom: index===ctx.length()-1 ? 0 : undefined}}
-        <AccordionTreeItemContext.Provider value={{notifyAPI:onHeightChange}}>
+        <AccordionTreeItemContext.Provider value={ctx}>
             <div id={props.title} ref={wRef} className={`${css.accordion} ${isOpen ? css.accordionOpen : ''}`}>
                 <button className={css.header} onClick={toggleChild}>
                     <span className={css.title}>{title}</span>
