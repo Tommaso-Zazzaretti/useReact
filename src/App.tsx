@@ -15,10 +15,10 @@ const App:React.FC<{}> = () => {
   }, []);
 
 
-  const [show,setShow] = React.useState<boolean>(false);
+  const [show,setShow] = React.useState<boolean>(true);
 
   React.useEffect(()=>{
-    setTimeout(()=>setShow(p=>!p),6000);
+    // setTimeout(()=>setShow(p=>!p),6000);
   },[show])
   
   return (<Fragment>
