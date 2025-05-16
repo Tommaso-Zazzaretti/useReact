@@ -162,8 +162,15 @@ const AccordionItem: React.ForwardRefExoticComponent<IAccordionItemInnerProps & 
         const isSubscribed = subscribed.current && wRef.current!==null;
         if(!isSubscribed){ return; } 
         toggleAPI(wRef.current!);
-        notifyAPI((isOpen?-1:+1)*(height+32)) // MARGIN
-    },[toggleAPI,notifyAPI,isOpen,height])
+    },[toggleAPI])
+
+    // When isOpen state change => notify height change to parent Item
+    const notifyRef = React.useRef<boolean>(isOpen);
+    React.useEffect(()=>{
+        if(notifyRef.current===isOpen){ return; }
+        notifyAPI((isOpen?+1:-1)*(height+32)) // MARGIN
+        notifyRef.current = isOpen;
+    },[height,notifyAPI,isOpen])
 
 
     return (
