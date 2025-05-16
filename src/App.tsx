@@ -15,11 +15,11 @@ const App:React.FC<{}> = () => {
   }, []);
 
 
-  const [show,setShow] = React.useState<boolean>(true);
+  // const [show,setShow] = React.useState<boolean>(true);
 
-  React.useEffect(()=>{
-    // setTimeout(()=>setShow(p=>!p),6000);
-  },[show])
+  // React.useEffect(()=>{
+  //   setTimeout(()=>setShow(p=>!p),6000);
+  // },[show])
   
   return (<Fragment>
     <Navbar/>
@@ -56,7 +56,7 @@ const App:React.FC<{}> = () => {
                         </AccordionTree.Item> 
 
                         <React.Fragment>
-                          {show && 
+                          {true && 
                           <AccordionTree.Item title="Section2.1.3">
                             <AccordionTree singleOpen={false}>
 
