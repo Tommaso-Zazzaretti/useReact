@@ -252,11 +252,11 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
                         <span className={`${css.arrow} ${isOpen ? css.rotated : ''} ${css[arrowStyle ?? 'chevron']}`} />
                     </span>
                 </button>
-                {/* {(!unmountOnClose || active) && */}
-                    <div ref={onChildMountRef} className={`${css.content} ${isOpen ? css.expanded : ''}`} style={{maxHeight: isOpen ? `${height}px` : '0px'}}>
-                        <div className={css.innerContent}>{children}</div>
-                    </div>
-                {/* } */}
+                <div className={`${css.content}`} style={{maxHeight: isOpen ? `${height}px` : '0px'}}>
+                    {/* {(!unmountOnClose || active) && */}
+                        <div ref={onChildMountRef} className={css.innerContent}>{children}</div>
+                    {/* } */}
+                </div>
             </div>
         </AccordionTreeItemContext.Provider>
     );
