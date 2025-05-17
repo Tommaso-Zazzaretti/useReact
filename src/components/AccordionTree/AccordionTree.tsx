@@ -70,8 +70,8 @@ const AccordionTreeBase: React.ForwardRefExoticComponent<IAccordionTreeProps & R
     const unsubscribeAPI = React.useCallback((element:HTMLDivElement) => {
         iRef.current.delete(element);
         setOpened(p=>{
-            const c = new Set(p); 
-            c.delete(element); 
+            if(p.has(element)){ return p; }
+            const c = new Set(p); c.delete(element); 
             return c; 
         })
     },[]);
@@ -131,8 +131,13 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
     // Refs 
     const wRef = React.useRef<HTMLDivElement | null>(null);
     const subscribed = React.useRef<boolean>(false);
+    const isOpenRef = React.useRef(false);
     // Derived States
-    const isOpen=React.useMemo(()=>{ return subscribed.current && wRef.current!==null && opened.has(wRef.current!);},[opened])
+    const isOpen=React.useMemo(()=>{ 
+        const open = subscribed.current && wRef.current!==null && opened.has(wRef.current!);
+        isOpenRef.current=open;
+        return open;
+    },[opened])
     
     
     // Link Forwarded div Ref with real div Ref
@@ -141,9 +146,6 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
     });
 
     // Subscribe / UnSubscribe
-    const isOpenRef = React.useRef(false);
-    React.useEffect(()=>{ isOpenRef.current=isOpen; },[isOpen]);
-
     const subscribeRef = React.useRef<()=>void>(()=>{
         const ref = wRef.current;
         if (ref===null || subscribed.current) { return; }
@@ -180,7 +182,7 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
         toggleAPI(wRef.current!);
     },[toggleAPI])
 
-    // When isOpen state change => notify height change to parent Item => parent change isOpen => notifyAPI height change to root
+    // When isOpen state change => notify height change to parent Item => notifyAPI height change to root
     const notifySyncRef = React.useRef<boolean>(isOpen);
     React.useEffect(()=>{
         if(notifySyncRef.current===isOpen){ return; }
