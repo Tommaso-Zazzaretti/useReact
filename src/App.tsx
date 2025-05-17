@@ -41,10 +41,10 @@ const App:React.FC<{}> = () => {
               <div>Contenuto 1</div>
             </AccordionTree.Item>
 
-            <AccordionTree.Item title="Section2">
+            <AccordionTree.Item title="Section2" unmountOnClose={true}>
                 <AccordionTree singleOpen={false}>
 
-                  <AccordionTree.Item title="Section2.1">
+                  <AccordionTree.Item title="Section2.1" unmountOnClose={true}>
                       <AccordionTree singleOpen={false}>
 
                         <AccordionTree.Item title="Section2.1.1">
@@ -56,7 +56,7 @@ const App:React.FC<{}> = () => {
                         </AccordionTree.Item> 
 
                         <React.Fragment>
-                          {show && 
+                          {true && 
                           <AccordionTree.Item title="Section2.1.3">
                             <AccordionTree singleOpen={false}>
 
