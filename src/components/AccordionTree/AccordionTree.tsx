@@ -100,15 +100,17 @@ const AccordionTreeBase: React.ForwardRefExoticComponent<IAccordionTreeProps & R
         | CONTEXT |
         +---------*/
 type AccordionTreeItemContextType = {
-    notifyAPI:(delta:number) => void
+    notifyAPI:(delta:number,onlyParent?:boolean) => void
     isParentUnmounting: () => boolean
     isParentOpen: () => boolean
+    parentCntBox: () => HTMLDivElement|null
 }
 
 const AccordionTreeItemContext = React.createContext<AccordionTreeItemContextType>({
-    notifyAPI:(delta:number) => {},
+    notifyAPI:(delta:number,onlyParent?:boolean) => {},
     isParentUnmounting: () => false,
-    isParentOpen: () => false
+    isParentOpen: () => false,
+    parentCntBox: () => null
 });
 
        /*----------------+
@@ -127,7 +129,7 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
     const { children,arrowStyle,closeDelay,unmountOnClose,title } = props;
     // Context
     const {subscribeAPI,unsubscribeAPI,toggleAPI,opened,level} = React.useContext<AccordionTreeContextType>(AccordionTreeContext);
-    const {notifyAPI,isParentOpen,isParentUnmounting} = React.useContext<AccordionTreeItemContextType>(AccordionTreeItemContext);
+    const {notifyAPI,isParentOpen,isParentUnmounting,parentCntBox} = React.useContext<AccordionTreeItemContextType>(AccordionTreeItemContext);
     // States
     const [height,setHeight] = React.useState(0);
     // Refs 
@@ -163,7 +165,13 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
         if (ref===null || !subscribed.current) { return; }
         const h = -(ref.scrollHeight+(isOpenRef.current?32:0));
         if(!isParentUnmounting() && isParentOpen() && level>0){ notifyAPI(h); }
-        if(!isParentUnmounting() && !isParentOpen() && level>0){ setHeight(p=>p+h); }
+        if(!isParentUnmounting() && !isParentOpen() && level>0){ 
+            if(parentCntBox()!==null){ 
+                setHeight(p=>p+h); // Unmount but parent will be alive => just decrease height 
+            }  else {
+                notifyAPI(h,true);  // Unmount but parent content box will not be alive anymore => we must notify height decrease, because element will not be rendered (after a new open, a positive height will be added)
+            }
+        }
         isOnUnmounting.current=true;
         unsubscribeAPI(ref);
         subscribed.current = false;
@@ -214,16 +222,20 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
         if(notifySyncRef.current===isOpen){ return; }
         notifyAPI((isOpen?+1:-1)*(height+32)) // MARGIN
         notifySyncRef.current = isOpen;
-    },[height,notifyAPI,isOpen])
-
-    React.useEffect(()=>{
-        if(wRef.current?.id!=='Section2'){ return; }
-        console.log(wRef.current.id, height)
-    },[height])
+    },[height,notifyAPI,isOpen,parentCntBox])
 
     // Context methods
-    const notifyImplementation = React.useCallback((delta:number)=>{
-        setHeight(p=>p+delta);
+    const notifyImplementation = React.useCallback((delta:number,onlyParent?:boolean)=>{
+        if(wRef.current?.id==='Section2'){ 
+            console.log('Sec2',delta)
+        }
+        if(wRef.current?.id==='Section2.1'){ 
+            console.log('Sec2.1',delta)
+        }
+        setHeight(p=>{
+            return p+delta
+        });
+        if(onlyParent){ return; }
         notifyAPI(delta) // RECURSIVE STEP
     },[notifyAPI])
 
@@ -231,8 +243,12 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
         return isOpenRef.current;
     },[])
 
+     const parentCntBoxImplementation = React.useCallback(()=>{
+        return cRef.current;
+    },[])
+
     const isParentUnmountingImplementation = React.useCallback(()=>{
-        return isOnUnmounting.current;
+        return isOnUnmounting.current !;
     },[])
     const isOnUnmounting = React.useRef<boolean>(false);
 
@@ -241,8 +257,9 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
             notifyAPI: notifyImplementation,
             isParentOpen: isParentOpenImplementation,
             isParentUnmounting: isParentUnmountingImplementation,
+            parentCntBox: parentCntBoxImplementation
         }
-    },[notifyImplementation, isParentUnmountingImplementation, isParentOpenImplementation])
+    },[notifyImplementation, isParentUnmountingImplementation, isParentOpenImplementation,parentCntBoxImplementation])
 
     return (
         //  style={{marginTop: index===0 ? 0 : undefined, marginBottom: index===ctx.length()-1 ? 0 : undefined}}
@@ -255,9 +272,9 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
                     </span>
                 </button>
                 <div className={`${css.content}`} style={{maxHeight: isOpen ? `${height}px` : '0px'}}>
-                    {/* {(!unmountOnClose || active) && */}
+                    {(!unmountOnClose || active) &&
                         <div ref={onChildMountRef} className={css.innerContent}>{children}</div>
-                    {/* } */}
+                    }
                 </div>
             </div>
         </AccordionTreeItemContext.Provider>
