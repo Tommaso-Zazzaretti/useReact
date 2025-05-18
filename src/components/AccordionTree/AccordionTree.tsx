@@ -173,7 +173,9 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
         subscribe(); return () => { unsubscribe(); }
     }, []);
     
+    const cRef = React.useRef<HTMLDivElement|null>(null);
     const onChildMountRef = React.useCallback((ref:HTMLDivElement|null) => {
+        cRef.current = ref;
         if (ref===null || ref.scrollHeight===undefined) { return; }
         setHeight(ref.scrollHeight)
     },[])
