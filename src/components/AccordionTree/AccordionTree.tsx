@@ -226,15 +226,7 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
 
     // Context methods
     const notifyImplementation = React.useCallback((delta:number,onlyParent?:boolean)=>{
-        if(wRef.current?.id==='Section2'){ 
-            console.log('Sec2',delta)
-        }
-        if(wRef.current?.id==='Section2.1'){ 
-            console.log('Sec2.1',delta)
-        }
-        setHeight(p=>{
-            return p+delta
-        });
+        setHeight(p=>{return p+delta});
         if(onlyParent){ return; }
         notifyAPI(delta) // RECURSIVE STEP
     },[notifyAPI])
