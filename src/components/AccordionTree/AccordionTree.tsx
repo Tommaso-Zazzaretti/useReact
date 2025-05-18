@@ -154,7 +154,13 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
         const ref = wRef.current;
         if (ref===null || subscribed.current) { return; }
         const h = ref.scrollHeight+(isOpenRef.current?32:0);
-        if(isParentOpen() && level>0) { notifyAPI(h); }
+        if(isParentOpen() && level>0) { 
+            if(parentCntBox()!==null){ 
+                notifyAPI(h); // Mount inside a parent with contentBox Rendered => notify subscribe height increasing
+            }  else {
+                notifyAPI(h,true);  // Mount inside a parent with a no contentBox Rendered (unmountOnClose=true) => notify subscribe to parent only, after content Render, parent will notify to root
+            } 
+        }
         if(!isParentOpen() && level>0) { setHeight(p=>p+h); }
         subscribeAPI(ref);
         subscribed.current = true;
@@ -220,10 +226,19 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
     const notifySyncRef = React.useRef<boolean>(isOpen);
     React.useEffect(()=>{
         if(notifySyncRef.current===isOpen){ return; }
+        if(cRef.current===null){ return; }
         notifyAPI((isOpen?+1:-1)*(height+32)) // MARGIN
         notifySyncRef.current = isOpen;
     },[height,notifyAPI,isOpen,parentCntBox])
 
+    React.useEffect(()=>{
+        if(wRef.current?.id==='Section2'){
+            console.log('Section2',height)
+        }
+        if(wRef.current?.id==='Section2.1'){
+            console.log('Section2.1',height)
+        }
+    },[height])
     // Context methods
     const notifyImplementation = React.useCallback((delta:number,onlyParent?:boolean)=>{
         setHeight(p=>{return p+delta});
