@@ -157,9 +157,10 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
         if(isParentOpen() && level>0) { 
             if(parentCntBox()!==null){ 
                 notifyAPI(h); // Mount inside a parent with contentBox Rendered => notify subscribe height increasing
-            }  else {
-                notifyAPI(h,true);  // Mount inside a parent with a no contentBox Rendered (unmountOnClose=true) => notify subscribe to parent only, after content Render, parent will notify to root
-            } 
+            }  
+            // else {
+            //     notifyAPI(h,true);  // Mount inside a parent with a no contentBox Rendered (unmountOnClose=true) => notify subscribe to parent only, after content Render, parent will notify to root
+            // } 
         }
         if(!isParentOpen() && level>0) { setHeight(p=>p+h); }
         subscribeAPI(ref);
@@ -174,9 +175,10 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
         if(!isParentUnmounting() && !isParentOpen() && level>0){ 
             if(parentCntBox()!==null){ 
                 setHeight(p=>p+h); // Unmount but parent will be alive => just decrease height 
-            }  else {
-                notifyAPI(h,true);  // Unmount but parent content box will not be alive anymore => we must notify height decrease, because element will not be rendered (after a new open, a positive height will be added)
-            }
+            }  
+            // else {
+            //     notifyAPI(h,true);  // Unmount but parent content box will not be alive anymore => we must notify height decrease, because element will not be rendered (after a new open, a positive height will be added)
+            // }
         }
         isOnUnmounting.current=true;
         unsubscribeAPI(ref);
@@ -190,9 +192,14 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
     const cRef = React.useRef<HTMLDivElement|null>(null);
     const onChildMountRef = React.useCallback((ref:HTMLDivElement|null) => {
         cRef.current = ref;
-        if (ref===null || ref.scrollHeight===undefined) { return; }
-        setHeight(ref.scrollHeight)
-    },[])
+        if (ref!==null) {
+            setHeight(ref.scrollHeight)
+             return; 
+        }
+        if(unmountOnClose){
+            setHeight(0);
+        }
+    },[unmountOnClose])
 
     const toggleChild = React.useCallback((event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         const isSubscribed = subscribed.current && wRef.current!==null;
