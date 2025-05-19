@@ -245,15 +245,29 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
         }; 
     },[isOpen,closeDelay])
 
+    const openPaddingPx = React.useMemo((): number => {
+        const el = document.createElement('div');
+        el.className = css.accordionOpen;
+        el.style.position = 'absolute';
+        el.style.visibility = 'hidden';
+        el.style.pointerEvents = 'none';
+        document.body.appendChild(el);
+        const pt = parseFloat(window.getComputedStyle(el).paddingTop.replace('px',''));
+        const pb = parseFloat(window.getComputedStyle(el).paddingBottom.replace('px',''));            
+        document.body.removeChild(el);
+        return pt+pb;
+    },[])
+
     // When isOpen state change => notify height change to parent Item => notifyAPI height change to root
     const notifySyncRef = React.useRef<boolean>(isOpen);
     React.useLayoutEffect(()=>{
         if(notifySyncRef.current===isOpen){ return; }
         if(cRef.current===null){ return; }
         if(wRef.current===null){ return; }
-        notifyAPI((isOpen?+1:-1)*(height+32))
+        // Height includes user content padding. We must include our accordion padding:
+        notifyAPI((isOpen?+1:-1)*(height+openPaddingPx))
         notifySyncRef.current = isOpen;
-    },[height,notifyAPI,isOpen,parentCntBox])
+    },[height,notifyAPI,isOpen,parentCntBox,openPaddingPx])
 
     // Context methods
     const notifyImplementation = React.useCallback((delta:number,notRecursive?:boolean)=>{
