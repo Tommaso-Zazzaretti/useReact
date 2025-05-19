@@ -100,7 +100,7 @@ const AccordionTreeBase: React.ForwardRefExoticComponent<IAccordionTreeProps & R
         | CONTEXT |
         +---------*/
 type AccordionTreeItemContextType = {
-    notifyAPI:(delta:number,onlyParent?:boolean) => void
+    notifyAPI:(delta:number,notRecursive?:boolean) => void
     isParentUnmounting: () => boolean
     isParentMounted: () => boolean,
     isParentOpen: () => boolean
@@ -108,7 +108,7 @@ type AccordionTreeItemContextType = {
 }
 
 const AccordionTreeItemContext = React.createContext<AccordionTreeItemContextType>({
-    notifyAPI:(delta:number,onlyParent?:boolean) => {},
+    notifyAPI:(delta:number,notRecursive?:boolean) => {},
     isParentUnmounting: () => false,
     isParentMounted: () => false,
     isParentOpen: () => false,
@@ -156,15 +156,15 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
         const ref = wRef.current;
         if (ref===null || subscribed.current) { return; }
         const h = ref.scrollHeight;
-        if(ref.id==='Section2.1.1'){ 
-            console.log('Section2.1.1',h);
-        }
         if(isParentMounted() && isParentOpen() && level>0) { 
             if(parentCntBox()!==null){ 
                 notifyAPI(h); // Mount inside a parent with contentBox Rendered (unmountOnClose=false) => notify subscribe height increasing
             }  
         }
-        if(isParentMounted() && !isParentOpen() && level>0) { setHeight(p=>p+h); }
+        if(isParentMounted() && !isParentOpen() && level>0) { 
+            console.log('add',wRef.current?.id, h)
+            notifyAPI(h,true);
+        }
         subscribeAPI(ref);
         subscribed.current = true;
     })
@@ -173,16 +173,32 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
         const ref = wRef.current;
         if (ref===null || !subscribed.current) { return; }
         const h = -(ref.scrollHeight);
-        if(!isParentUnmounting() && isParentOpen() && level>0){ notifyAPI(h); }
+        if(!isParentUnmounting() && isParentOpen() && level>0){ 
+            notifyAPI(h); 
+        }
         if(!isParentUnmounting() && !isParentOpen() && level>0){ 
-            if(parentCntBox()!==null){ 
-                setHeight(p=>p+h); // Unmount but parent is not open and will be alive (unmountOnClose=false) => just decrease height 
+            if(parentCntBox()!==null){ // Unmount but parent is not open and will be alive (unmountOnClose=false) => just decrease height 
+                notifyAPI(h,true); 
             }  
         }
         isOnUnmounting.current=true;
         unsubscribeAPI(ref);
         subscribed.current = false;
     })
+
+    React.useLayoutEffect(()=>{
+        setTimeout(()=>{
+            if(wRef.current?.id==='Section2.1' && cRef.current!==null){
+            const realH = parseFloat(window.getComputedStyle(cRef.current!).height.replace('px',''));
+            const reahPT = parseFloat(window.getComputedStyle(cRef.current!).paddingTop.replace('px',''));
+            const reahPB = parseFloat(window.getComputedStyle(cRef.current!).paddingBottom.replace('px',''));
+            console.log('Section2.1',height,realH+reahPB+reahPT);
+        } else {
+            console.log(height,null)
+        }
+        },500)
+    },[height])
+
     React.useLayoutEffect(() => {
         const [subscribe,unsubscribe] = [subscribeRef.current, unsubscribeRef.current];
         subscribe(); return () => { unsubscribe(); }
@@ -192,11 +208,11 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
     const onChildMountRef = React.useCallback((ref:HTMLDivElement|null) => {
         cRef.current = ref;
         if (ref!==null) {
-            setHeight(ref.scrollHeight)
+            setHeight(()=>ref.scrollHeight)
             return; 
         }
         if(unmountOnClose){
-            setHeight(0);
+            setHeight(()=>0);
         }
     },[unmountOnClose])
 
@@ -234,23 +250,14 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
         if(notifySyncRef.current===isOpen){ return; }
         if(cRef.current===null){ return; }
         if(wRef.current===null){ return; }
-        console.log(height,isOpen,height+32)
-        notifyAPI((isOpen?+1:-1)*(height+32)) 
+        notifyAPI((isOpen?+1:-1)*(height+32))
         notifySyncRef.current = isOpen;
     },[height,notifyAPI,isOpen,parentCntBox])
 
-    React.useEffect(()=>{
-        if(wRef.current?.id==='Section2'){
-            console.log('Section2',height)
-        }
-        if(wRef.current?.id==='Section2.1'){
-            console.log('Section2.1',height)
-        }
-    },[height])
     // Context methods
-    const notifyImplementation = React.useCallback((delta:number,onlyParent?:boolean)=>{
-        setHeight(p=>{return p+delta});
-        if(onlyParent){ return; }
+    const notifyImplementation = React.useCallback((delta:number,notRecursive?:boolean)=>{
+        setHeight(p=>{ return p+delta });
+        if(notRecursive){ return; }
         notifyAPI(delta) // RECURSIVE STEP
     },[notifyAPI])
 
