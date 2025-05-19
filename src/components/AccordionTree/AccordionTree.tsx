@@ -102,6 +102,7 @@ const AccordionTreeBase: React.ForwardRefExoticComponent<IAccordionTreeProps & R
 type AccordionTreeItemContextType = {
     notifyAPI:(delta:number,onlyParent?:boolean) => void
     isParentUnmounting: () => boolean
+    isParentMounted: () => boolean,
     isParentOpen: () => boolean
     parentCntBox: () => HTMLDivElement|null
 }
@@ -109,6 +110,7 @@ type AccordionTreeItemContextType = {
 const AccordionTreeItemContext = React.createContext<AccordionTreeItemContextType>({
     notifyAPI:(delta:number,onlyParent?:boolean) => {},
     isParentUnmounting: () => false,
+    isParentMounted: () => false,
     isParentOpen: () => false,
     parentCntBox: () => null
 });
@@ -129,7 +131,7 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
     const { children,arrowStyle,closeDelay,unmountOnClose,title } = props;
     // Context
     const {subscribeAPI,unsubscribeAPI,toggleAPI,opened,level} = React.useContext<AccordionTreeContextType>(AccordionTreeContext);
-    const {notifyAPI,isParentOpen,isParentUnmounting,parentCntBox} = React.useContext<AccordionTreeItemContextType>(AccordionTreeItemContext);
+    const {notifyAPI,isParentOpen,isParentUnmounting,isParentMounted, parentCntBox} = React.useContext<AccordionTreeItemContextType>(AccordionTreeItemContext);
     // States
     const [height,setHeight] = React.useState(0);
     // Refs 
@@ -157,12 +159,12 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
         if(ref.id==='Section2.1.1'){ 
             console.log('Section2.1.1',h);
         }
-        if(isParentOpen() && level>0) { 
+        if(isParentMounted() && isParentOpen() && level>0) { 
             if(parentCntBox()!==null){ 
                 notifyAPI(h); // Mount inside a parent with contentBox Rendered (unmountOnClose=false) => notify subscribe height increasing
             }  
         }
-        if(!isParentOpen() && level>0) { setHeight(p=>p+h); }
+        if(isParentMounted() && !isParentOpen() && level>0) { setHeight(p=>p+h); }
         subscribeAPI(ref);
         subscribed.current = true;
     })
@@ -228,10 +230,12 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
 
     // When isOpen state change => notify height change to parent Item => notifyAPI height change to root
     const notifySyncRef = React.useRef<boolean>(isOpen);
-    React.useEffect(()=>{
+    React.useLayoutEffect(()=>{
         if(notifySyncRef.current===isOpen){ return; }
         if(cRef.current===null){ return; }
-        notifyAPI((isOpen?+1:-1)*(height)) 
+        if(wRef.current===null){ return; }
+        console.log(height,isOpen,height+32)
+        notifyAPI((isOpen?+1:-1)*(height+32)) 
         notifySyncRef.current = isOpen;
     },[height,notifyAPI,isOpen,parentCntBox])
 
@@ -259,18 +263,23 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
     },[])
 
     const isParentUnmountingImplementation = React.useCallback(()=>{
-        return isOnUnmounting.current !;
+        return isOnUnmounting.current;
     },[])
     const isOnUnmounting = React.useRef<boolean>(false);
+
+    const isParentMountedImplementation = React.useCallback(()=>{
+        return wRef.current!==null;
+    },[])
 
     const ctx:AccordionTreeItemContextType = React.useMemo<AccordionTreeItemContextType>(()=>{
         return {
             notifyAPI: notifyImplementation,
             isParentOpen: isParentOpenImplementation,
             isParentUnmounting: isParentUnmountingImplementation,
-            parentCntBox: parentCntBoxImplementation
+            parentCntBox: parentCntBoxImplementation,
+            isParentMounted: isParentMountedImplementation
         }
-    },[notifyImplementation, isParentUnmountingImplementation, isParentOpenImplementation,parentCntBoxImplementation])
+    },[notifyImplementation, isParentUnmountingImplementation, isParentOpenImplementation,parentCntBoxImplementation,isParentMountedImplementation])
 
     return (
         //  style={{marginTop: index===0 ? 0 : undefined, marginBottom: index===ctx.length()-1 ? 0 : undefined}}
