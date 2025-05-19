@@ -162,7 +162,6 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
             }  
         }
         if(isParentMounted() && !isParentOpen() && level>0) { 
-            console.log('add',wRef.current?.id, h)
             notifyAPI(h,true);
         }
         subscribeAPI(ref);
@@ -186,18 +185,20 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
         subscribed.current = false;
     })
 
-    React.useLayoutEffect(()=>{
-        setTimeout(()=>{
-            if(wRef.current?.id==='Section2.1' && cRef.current!==null){
-            const realH = parseFloat(window.getComputedStyle(cRef.current!).height.replace('px',''));
-            const reahPT = parseFloat(window.getComputedStyle(cRef.current!).paddingTop.replace('px',''));
-            const reahPB = parseFloat(window.getComputedStyle(cRef.current!).paddingBottom.replace('px',''));
-            console.log('Section2.1',height,realH+reahPB+reahPT);
-        } else {
-            console.log(height,null)
-        }
-        },500)
-    },[height])
+    // DEBUG ! ! ! ! ! 
+    // React.useLayoutEffect(()=>{
+    //     setTimeout(()=>{
+    //         if(wRef.current?.id!=='Section2'){return;}
+    //         if(cRef.current!==null){
+    //             const realH = parseFloat(window.getComputedStyle(cRef.current!).height.replace('px',''));
+    //             const reahPT = parseFloat(window.getComputedStyle(cRef.current!).paddingTop.replace('px',''));
+    //             const reahPB = parseFloat(window.getComputedStyle(cRef.current!).paddingBottom.replace('px',''));
+    //             console.log('Section2',height,realH+reahPB+reahPT);
+    //         } else {
+    //             console.log(height,null)
+    //         }
+    //     },500)
+    // },[height])
 
     React.useLayoutEffect(() => {
         const [subscribe,unsubscribe] = [subscribeRef.current, unsubscribeRef.current];
