@@ -153,14 +153,14 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
     const subscribeRef = React.useRef<()=>void>(()=>{
         const ref = wRef.current;
         if (ref===null || subscribed.current) { return; }
-        const h = ref.scrollHeight+(isOpenRef.current?32:0);
+        const h = ref.scrollHeight;
+        if(ref.id==='Section2.1.1'){ 
+            console.log('Section2.1.1',h);
+        }
         if(isParentOpen() && level>0) { 
             if(parentCntBox()!==null){ 
-                notifyAPI(h); // Mount inside a parent with contentBox Rendered => notify subscribe height increasing
+                notifyAPI(h); // Mount inside a parent with contentBox Rendered (unmountOnClose=false) => notify subscribe height increasing
             }  
-            // else {
-            //     notifyAPI(h,true);  // Mount inside a parent with a no contentBox Rendered (unmountOnClose=true) => notify subscribe to parent only, after content Render, parent will notify to root
-            // } 
         }
         if(!isParentOpen() && level>0) { setHeight(p=>p+h); }
         subscribeAPI(ref);
@@ -170,15 +170,12 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
     const unsubscribeRef = React.useRef<()=>void>(()=>{
         const ref = wRef.current;
         if (ref===null || !subscribed.current) { return; }
-        const h = -(ref.scrollHeight+(isOpenRef.current?32:0));
+        const h = -(ref.scrollHeight);
         if(!isParentUnmounting() && isParentOpen() && level>0){ notifyAPI(h); }
         if(!isParentUnmounting() && !isParentOpen() && level>0){ 
             if(parentCntBox()!==null){ 
-                setHeight(p=>p+h); // Unmount but parent will be alive => just decrease height 
+                setHeight(p=>p+h); // Unmount but parent is not open and will be alive (unmountOnClose=false) => just decrease height 
             }  
-            // else {
-            //     notifyAPI(h,true);  // Unmount but parent content box will not be alive anymore => we must notify height decrease, because element will not be rendered (after a new open, a positive height will be added)
-            // }
         }
         isOnUnmounting.current=true;
         unsubscribeAPI(ref);
@@ -194,7 +191,7 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
         cRef.current = ref;
         if (ref!==null) {
             setHeight(ref.scrollHeight)
-             return; 
+            return; 
         }
         if(unmountOnClose){
             setHeight(0);
@@ -234,7 +231,7 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
     React.useEffect(()=>{
         if(notifySyncRef.current===isOpen){ return; }
         if(cRef.current===null){ return; }
-        notifyAPI((isOpen?+1:-1)*(height+32)) // MARGIN
+        notifyAPI((isOpen?+1:-1)*(height)) 
         notifySyncRef.current = isOpen;
     },[height,notifyAPI,isOpen,parentCntBox])
 
@@ -290,6 +287,7 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
                         <div ref={onChildMountRef} className={css.innerContent}>{children}</div>
                     }
                 </div>
+                <div style={{borderBottom:'1px solid #ddd'}}></div>
             </div>
         </AccordionTreeItemContext.Provider>
     );

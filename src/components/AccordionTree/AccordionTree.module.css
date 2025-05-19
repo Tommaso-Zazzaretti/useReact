@@ -3,13 +3,13 @@
 }
   
  .accordion {
-    border-bottom: 1px solid #ddd;
-    transition: margin 0.3s ease;
+    /* border-bottom: 1px solid #ddd; */
+    transition: padding 0.3s ease;
     height: auto;
 }
 
 .accordionOpen {
-    margin: 16px 0;
+    padding: 16px 0;
 }
   
 .header {
