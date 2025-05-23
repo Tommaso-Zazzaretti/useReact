@@ -159,7 +159,7 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
     });
 
     // Subscribe / UnSubscribe
-    const subscribeRef = React.useRef<()=>void>(()=>{
+    const onMount = React.useRef<()=>void>(()=>{
         const ref = wRef.current;
         if (ref===null || subscribed.current) { return; }
         const h = ref.scrollHeight;
@@ -175,7 +175,7 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
         subscribed.current = true;
     })
 
-    const unsubscribeRef = React.useRef<()=>void>(()=>{
+    const onUnmount = React.useRef<()=>void>(()=>{
         const ref = wRef.current;
         if (ref===null || !subscribed.current) { return; }
         const h = -(ref.scrollHeight);
@@ -191,6 +191,18 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
         unsubscribeAPI(ref);
         subscribed.current = false;
     })
+
+    const cRef = React.useRef<HTMLDivElement|null>(null);
+    const onContentMount = React.useCallback((ref:HTMLDivElement|null) => {
+        cRef.current = ref;
+        if (ref!==null) {
+            setHeight(()=>ref.scrollHeight)
+            return; 
+        }
+        if(unmountOnClose){
+            setHeight(()=>0);
+        }
+    },[unmountOnClose])
 
     // DEBUG ! ! ! ! ! 
     React.useLayoutEffect(()=>{
@@ -208,21 +220,10 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
     },[height])
 
     React.useLayoutEffect(() => {
-        const [subscribe,unsubscribe] = [subscribeRef.current, unsubscribeRef.current];
-        subscribe(); return () => { unsubscribe(); }
+        const [mount,unmount] = [onMount.current, onUnmount.current];
+        mount(); return () => { unmount(); }
     }, []);
     
-    const cRef = React.useRef<HTMLDivElement|null>(null);
-    const onChildMountRef = React.useCallback((ref:HTMLDivElement|null) => {
-        cRef.current = ref;
-        if (ref!==null) {
-            setHeight(()=>ref.scrollHeight)
-            return; 
-        }
-        if(unmountOnClose){
-            setHeight(()=>0);
-        }
-    },[unmountOnClose])
 
     const toggleChild = React.useCallback((event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         const isSubscribed = subscribed.current && wRef.current!==null;
@@ -389,7 +390,7 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
                 </button>
                 <div className={`${css.content}`} style={{maxHeight: isOpen ? `${height}px` : '0px'}}>
                     {(!unmountOnClose || active) &&
-                        <div ref={onChildMountRef} className={css.innerContent}>{children}</div>
+                        <div ref={onContentMount} className={css.innerContent}>{children}</div>
                     }
                 </div>
                 <div style={{borderBottom:'1px solid #ddd'}}></div>
