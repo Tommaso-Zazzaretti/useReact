@@ -6,12 +6,26 @@
     /* border-bottom: 1px solid #ddd; */
     transition: padding 0.3s ease;
     height: auto;
+    padding:0;
 }
 
-.accordionOpen {
-    padding: 16px 0; /* PADDING OPEN */
+.accordionOpen { /* DEFAULT */
+    padding: 16px 0;
 }
-  
+.accordionGroup .accordionOpen:only-child {
+    padding:0;
+}
+.accordionGroup .accordionOpen:first-child { 
+    padding-top: 0px;
+}
+.accordionGroup .accordionOpen + .accordionOpen { 
+    padding-top: 0px; 
+}
+.accordionGroup .accordionOpen:last-child {
+    padding-bottom: 0px; 
+}
+
+
 .header {
     display: flex;
     justify-content: space-between;

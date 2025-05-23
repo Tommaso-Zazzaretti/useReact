@@ -7,6 +7,7 @@ import css from './AccordionTree.module.css';
 type AccordionTreeContextType = {
     level: number;
     opened: Set<HTMLDivElement>,
+    prevOpened: Set<HTMLDivElement>,
     toggleAPI:(element:HTMLDivElement) => void,
     subscribeAPI:(element:HTMLDivElement) => void;
     unsubscribeAPI:(element:HTMLDivElement) => void;
@@ -15,6 +16,7 @@ type AccordionTreeContextType = {
 const AccordionTreeContext = React.createContext<AccordionTreeContextType>({
     level: -1,
     opened: new Set<HTMLDivElement>(),
+    prevOpened: new Set<HTMLDivElement>(),
     toggleAPI:()=>{},
     subscribeAPI:()=>{return; },
     unsubscribeAPI:()=>{return; }
@@ -38,6 +40,7 @@ const AccordionTreeBase: React.ForwardRefExoticComponent<IAccordionTreeProps & R
     const parentRootContext = React.useContext(AccordionTreeContext);     // To Get Level+1
     // States 
     const [opened, setOpened] = React.useState<Set<HTMLDivElement>>(new Set());
+    const previousOpened = React.useRef<Set<HTMLDivElement>>(new Set())
     // Refs
     const level = React.useRef<number>(parentRootContext ? parentRootContext.level + 1 : 0);
     const iRef  = React.useRef<Set<HTMLDivElement>>(new Set());
@@ -49,6 +52,7 @@ const AccordionTreeBase: React.ForwardRefExoticComponent<IAccordionTreeProps & R
 
     const toggleAPI = React.useCallback((element: HTMLDivElement) => {
         setOpened(p => {
+            previousOpened.current = new Set(p);
             if(p.has(element)){
                 const c = new Set<HTMLDivElement>(p);
                 c.delete(element);
@@ -68,9 +72,11 @@ const AccordionTreeBase: React.ForwardRefExoticComponent<IAccordionTreeProps & R
     },[]);
 
     const unsubscribeAPI = React.useCallback((element:HTMLDivElement) => {
+        if(wRef.current===null){ return; }
         iRef.current.delete(element);
         setOpened(p=>{
-            if(p.has(element)){ return p; }
+            previousOpened.current = new Set(p);
+            if(!p.has(element)){ return new Set(p); }
             const c = new Set(p); c.delete(element); 
             return c; 
         })
@@ -80,6 +86,7 @@ const AccordionTreeBase: React.ForwardRefExoticComponent<IAccordionTreeProps & R
         return { 
             level:level.current,
             opened, 
+            prevOpened: previousOpened.current,
             toggleAPI,
             subscribeAPI,
             unsubscribeAPI
@@ -130,7 +137,7 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
     // Props
     const { children,arrowStyle,closeDelay,unmountOnClose,title } = props;
     // Context
-    const {subscribeAPI,unsubscribeAPI,toggleAPI,opened,level} = React.useContext<AccordionTreeContextType>(AccordionTreeContext);
+    const {subscribeAPI,unsubscribeAPI,toggleAPI,prevOpened,opened,level} = React.useContext<AccordionTreeContextType>(AccordionTreeContext);
     const {notifyAPI,isParentOpen,isParentUnmounting,isParentMounted, parentCntBox} = React.useContext<AccordionTreeItemContextType>(AccordionTreeItemContext);
     // States
     const [height,setHeight] = React.useState(0);
@@ -186,19 +193,19 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
     })
 
     // DEBUG ! ! ! ! ! 
-    // React.useLayoutEffect(()=>{
-    //     setTimeout(()=>{
-    //         if(wRef.current?.id!=='Section2'){return;}
-    //         if(cRef.current!==null){
-    //             const realH = parseFloat(window.getComputedStyle(cRef.current!).height.replace('px',''));
-    //             const reahPT = parseFloat(window.getComputedStyle(cRef.current!).paddingTop.replace('px',''));
-    //             const reahPB = parseFloat(window.getComputedStyle(cRef.current!).paddingBottom.replace('px',''));
-    //             console.log('Section2',height,realH+reahPB+reahPT);
-    //         } else {
-    //             console.log(height,null)
-    //         }
-    //     },500)
-    // },[height])
+    React.useLayoutEffect(()=>{
+        setTimeout(()=>{
+            if(wRef.current?.id!=='Section2'){return;}
+            if(cRef.current!==null){
+                const realH = parseFloat(window.getComputedStyle(cRef.current!).height.replace('px',''));
+                const reahPT = parseFloat(window.getComputedStyle(cRef.current!).paddingTop.replace('px',''));
+                const reahPB = parseFloat(window.getComputedStyle(cRef.current!).paddingBottom.replace('px',''));
+                console.log('Section2',height,realH+reahPB+reahPT);
+            } else {
+                console.log(height,null)
+            }
+        },500)
+    },[height])
 
     React.useLayoutEffect(() => {
         const [subscribe,unsubscribe] = [subscribeRef.current, unsubscribeRef.current];
@@ -258,6 +265,72 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
         return pt+pb;
     },[])
 
+    const computeSpacing = React.useCallback((el: HTMLDivElement | null,opened: Set<HTMLDivElement>): number => {
+        
+        // NOT OPEN CASES 
+
+        // Null => padding contribute 0 always
+        if (!el) return 0;
+        // Close => padding contribute 0 always
+        const isOpen = opened.has(el);
+        if (!isOpen) return 0;
+
+        // OPEN CASES 
+
+        // Get previout and next element
+        const prev = el.previousElementSibling as HTMLDivElement|null;
+        const next = el.nextElementSibling as HTMLDivElement|null;
+        // Unique Child => 0 => no padding
+        if (!prev && !next) { return 0; }
+
+        // First Child => ha margin Bottom 16 solo se il secondo è chiuso, altrimenti 0
+        if(!prev && next) { return openPaddingPx/2; }
+
+        // Last Child => ha margin top 16 solo se il penultimo è chiuso, altrimenti 0
+        if(prev && !next) { return opened.has(prev) ? 0 : openPaddingPx/2; }
+
+        // Middle child => Ha tutti e 2 i padding se quello sopra è chiuso, altrimenti ne ha 1
+        if(prev && next) {
+            return opened.has(prev) ? openPaddingPx/2 : openPaddingPx;
+        }
+        return -1;
+    }, [openPaddingPx]);
+
+    const isSame = React.useCallback((a: Set<Element>, b: Set<Element>, el: Element | null): boolean => {
+        if (!el) return true;
+        return a.has(el) === b.has(el);
+    },[]);
+
+    const computeTotalSpacingDelta = React.useCallback((self: HTMLDivElement,prev: Set<HTMLDivElement>,next: Set<HTMLDivElement>): number => {
+        const pred = self.previousElementSibling as HTMLDivElement | null;
+        const succ = self.nextElementSibling as HTMLDivElement | null;
+
+        const shouldCheckPrev = (!isSame(prev, next, pred) || !isSame(prev, next, self));
+        const shouldCheckNext = (!isSame(prev, next, succ) || !isSame(prev, next, self));
+        const spacingBeforeSelf = computeSpacing(self, prev);
+        const spacingAfterSelf  = computeSpacing(self, next);
+
+        const spacingBeforePrev = shouldCheckPrev && pred ? computeSpacing(pred, prev) : 0;
+        const spacingAfterPrev  = shouldCheckPrev && pred ? computeSpacing(pred, next) : 0;
+
+        const spacingBeforeNext = shouldCheckNext && succ ? computeSpacing(succ, prev) : 0;
+        const spacingAfterNext  = shouldCheckNext && succ ? computeSpacing(succ, next) : 0;
+
+        // console.log(self.id,Array.from(prev).map(e=>e.id),Array.from(next).map(e=>e.id))
+        // console.log(self.id,[spacingBeforePrev,spacingBeforeSelf,spacingBeforeNext],[spacingAfterPrev,spacingAfterSelf,spacingAfterNext])
+
+        let totalBefore = spacingBeforeSelf + spacingBeforePrev + spacingBeforeNext;
+        let totalAfter  = spacingAfterSelf + spacingAfterPrev + spacingAfterNext;
+
+        const isFirst = pred===null;
+        const isLast  = succ===null;
+        // Casi speciali, il primo o l'ultimo cambiano con i secondo/penultimo => si perdono padding
+        if(isFirst && succ && !isSame(prev,next,self) && !isSame(prev,next,succ)){ totalAfter = totalBefore; }
+        if(isLast  && pred && !isSame(prev,next,self) && !isSame(prev,next,pred)){ totalAfter = totalBefore; }
+
+        return Math.abs(totalAfter - totalBefore);
+    },[isSame,computeSpacing]);
+
     // When isOpen state change => notify height change to parent Item => notifyAPI height change to root
     const notifySyncRef = React.useRef<boolean>(isOpen);
     React.useLayoutEffect(()=>{
@@ -265,9 +338,10 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
         if(cRef.current===null){ return; }
         if(wRef.current===null){ return; }
         // Height includes user content padding. We must include our accordion padding:
-        notifyAPI((isOpen?+1:-1)*(height+openPaddingPx))
+        const delta = computeTotalSpacingDelta(wRef.current,prevOpened,opened);
+        notifyAPI((isOpen?+1:-1)*(height+delta))
         notifySyncRef.current = isOpen;
-    },[height,notifyAPI,isOpen,parentCntBox,openPaddingPx])
+    },[isOpen,opened,prevOpened,height,notifyAPI,computeTotalSpacingDelta])
 
     // Context methods
     const notifyImplementation = React.useCallback((delta:number,notRecursive?:boolean)=>{
