@@ -41,19 +41,22 @@ const App:React.FC<{}> = () => {
               <div>Contenuto 1</div>
             </AccordionTree.Item>
 
-            <AccordionTree.Item title="Section2" unmountOnClose={true}>
+            <AccordionTree.Item title="Section2" unmountOnClose={false}>
                 <AccordionTree singleOpen={false}>
 
-                  <AccordionTree.Item title="Section2.1" unmountOnClose={true}>
-                      <AccordionTree singleOpen={false}>
+                  <AccordionTree.Item title="Section2.1" unmountOnClose={false}>
+                      <AccordionTree singleOpen={true}>
 
                         <AccordionTree.Item title="Section2.1.1">
                           <div>Contenuto 2.1.1</div>
                         </AccordionTree.Item>
-
-                        <AccordionTree.Item title="Section2.1.2">
-                          <div>Contenuto 2.1.2</div>
-                        </AccordionTree.Item> 
+                        <React.Fragment>
+                          {true && 
+                          <AccordionTree.Item title="Section2.1.2">
+                            <div>Contenuto 2.1.2</div>
+                          </AccordionTree.Item> 
+                          }
+                        </React.Fragment>
 
                         <React.Fragment>
                           {true && 
