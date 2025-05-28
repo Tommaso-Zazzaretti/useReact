@@ -91,6 +91,27 @@ const openPaddingPx = (className:string): number => {
     return pt+pb;
 }
 
+const getRuntimeBlockHeight = (element:HTMLElement) => {     
+    const style = window.getComputedStyle(element);
+
+    const height = parseFloat(style.height);
+    const marginTop = parseFloat(style.marginTop);
+    const marginBottom = parseFloat(style.marginBottom);
+
+    const borderTop = parseFloat(style.borderTopWidth);
+    const borderBottom = parseFloat(style.borderBottomWidth);
+    const paddingTop = parseFloat(style.paddingTop);
+    const paddingBottom = parseFloat(style.paddingBottom);
+
+    const isBorderBox = style.boxSizing === 'border-box';
+
+    const totalHeight = height
+        + marginTop + marginBottom
+        + (isBorderBox ? 0 : paddingTop + paddingBottom + borderTop + borderBottom);
+
+    return totalHeight;
+};
+
        /*-----------+
         | ACCORDION |
         +-----------*/
@@ -255,33 +276,29 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
         setContentHeight(contentHeight);
     },[openItems,heightMap])
 
-    const getRuntimeHeight = React.useCallback((element:HTMLElement) => {     
-        const style = window.getComputedStyle(element);
-        return element.scrollHeight+parseFloat(style.marginTop)+parseFloat(style.marginBottom)+parseFloat(style.borderTopWidth)+parseFloat(style.borderBottomWidth);
-    },[]);
-
     // ON COMPONENT MOUNT / UNMOUNT
     const onItemInitOrDestroyEventHandler = React.useCallback((ref:HTMLDivElement)=>{
         if(ref!==null){ // Mount case
-            const closeHeight   = getRuntimeHeight(bRef.current!)+getRuntimeHeight(dRef.current!)
-            const contentHeight = cRef.current===null ? 0 : getRuntimeHeight(cRef.current!);
-            
+            const closeHeight   = getRuntimeBlockHeight(bRef.current!)+getRuntimeBlockHeight(dRef.current!)
+            const contentHeight = cRef.current===null ? 0 : getRuntimeBlockHeight(cRef.current!);
             onItemMount(ref,closeHeight,contentHeight);
         } else { // Unmount case
             onItemUnmount(wRef.current!);
         }
         wRef.current = ref;
-    },[getRuntimeHeight,onItemMount,onItemUnmount])
+    },[onItemMount,onItemUnmount])
 
     // ON COMPONENT CONTENT MOUNT / UNMOUNT
     const onContentInitOrDestroyEventHandler = React.useCallback((ref:HTMLDivElement)=>{
         if(ref!==null){ // Mount case
-            if(wRef.current!==null){ onItemHeightChange(wRef.current!,getRuntimeHeight(ref)); }
+            if(wRef.current!==null){ 
+                onItemHeightChange(wRef.current!,getRuntimeBlockHeight(ref)); 
+            }
         } else { // Unmount case
             if(wRef.current!==null){ onItemHeightChange(wRef.current!,0); }
         }
         cRef.current = ref;
-    },[getRuntimeHeight,onItemHeightChange])
+    },[onItemHeightChange])
 
     const onToggleButtonClickEventHandler = React.useCallback((event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         if(wRef.current===null){ return; } 
@@ -296,20 +313,20 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
         }
     },[])
 
-
-    React.useLayoutEffect(()=>{
-        setTimeout(()=>{
-            if(!['Section2','Section2.1','Section2.1.3'].includes(wRef.current?.id ?? '')){return;}
-            if(cRef.current!==null){
-                const realH = parseFloat(window.getComputedStyle(cRef.current!).height.replace('px',''));
-                const reahPT = parseFloat(window.getComputedStyle(cRef.current!).paddingTop.replace('px',''));
-                const reahPB = parseFloat(window.getComputedStyle(cRef.current!).paddingBottom.replace('px',''));
-                console.log(wRef.current?.id?contentHeight:0,realH+reahPB+reahPT);
-            } else {
-                console.log(contentHeight,null)
-            }
-        },500)
-    },[contentHeight])
+    // DEBUG
+    // React.useLayoutEffect(()=>{
+    //     setTimeout(()=>{
+    //         if(!['Section2','Section2.1','Section2.1.3'].includes(wRef.current?.id ?? '')){return;}
+    //         if(cRef.current!==null){
+    //             const realH = parseFloat(window.getComputedStyle(cRef.current!).height.replace('px',''));
+    //             const reahPT = parseFloat(window.getComputedStyle(cRef.current!).paddingTop.replace('px',''));
+    //             const reahPB = parseFloat(window.getComputedStyle(cRef.current!).paddingBottom.replace('px',''));
+    //             console.log(wRef.current?.id?contentHeight:0,realH+reahPB+reahPT);
+    //         } else {
+    //             console.log(contentHeight,null)
+    //         }
+    //     },500)
+    // },[contentHeight])
 
     return (
         <AccordionTreeItemContext.Provider value={ctx}>

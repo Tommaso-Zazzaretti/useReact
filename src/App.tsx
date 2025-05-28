@@ -14,13 +14,6 @@ const App:React.FC<{}> = () => {
     scrollerRef.scrollTo({top,left});
   }, []);
 
-
-  const [show,setShow] = React.useState<boolean>(true);
-
-  React.useEffect(()=>{
-    setTimeout(()=>setShow(p=>!p),6000);
-  },[show])
-  
   return (<Fragment>
     <Navbar/>
     <Splitter dProps={{size:1, className: css.divider}} flexDirection="row" ratio={50} min1="30%" min2="10%" className={css.splitter}>
@@ -50,18 +43,12 @@ const App:React.FC<{}> = () => {
                         <AccordionTree.Item title="Section2.1.1">
                           <div>Contenuto 2.1.1</div>
                         </AccordionTree.Item>
-                        <React.Fragment>
-                          {true && 
                           <AccordionTree.Item title="Section2.1.2">
                             <div>Contenuto 2.1.2</div>
                           </AccordionTree.Item> 
-                          }
-                        </React.Fragment>
 
-                        <React.Fragment>
-                          {true && 
                           <AccordionTree.Item title="Section2.1.3">
-                            <AccordionTree singleOpen={false}>
+                            <AccordionTree singleOpen={true}>
 
                               <AccordionTree.Item title="Section2.1.3.1">
                                 <div>Contenuto 2.1.3.1</div>
@@ -97,8 +84,6 @@ const App:React.FC<{}> = () => {
                               
                             </AccordionTree>
                           </AccordionTree.Item> 
-                          }
-                        </React.Fragment>
 
                         <AccordionTree.Item title="Section2.1.4">
                           <div>Contenuto 2.1.4</div>
