@@ -1,15 +1,15 @@
 import React from "react";
 import css from './AccordionTree.module.css';
 
-       /*---------+
-        | CONTEXT |
-        +---------*/
+       /*-------------------+
+        | CONTEXT ACCORDION |
+        +-------------------*/
 type AccordionTreeContextType = {
     // Per dire agli items a che livello siamo
     level: number; 
-    // Per far capire ai figli se devono chiudersi
+    // Per far capire ai figli se devono chidersi
     openItems: Set<HTMLDivElement>, 
-
+    // Mappa altezze
     heightMap: Map<HTMLDivElement,[number,number]>,
     // Metodo che i figli devono invocare per comunicare al parent l'inversione di stato
     onItemToggle:(element:HTMLDivElement) => void, 
@@ -17,8 +17,8 @@ type AccordionTreeContextType = {
     onItemMount:(element:HTMLDivElement,closeHeight:number,contentHeight:number) => void;
     // Metodo che i figli devono chiamare per dire 
     onItemUnmount:(element:HTMLDivElement) => void;
-    // Metodo che i figli devono invocare per comunicare al parent che l'altezza interna di un item è cambiata
-    onItemContentHeightChange:(element:HTMLDivElement,height:number) => void;
+    // Metodo per ascoltare notifiche di height update
+    onItemHeightChange: (element:HTMLDivElement,contentHeight:number) => void;
 }
 
 const AccordionTreeContext = React.createContext<AccordionTreeContextType>({
@@ -28,9 +28,68 @@ const AccordionTreeContext = React.createContext<AccordionTreeContextType>({
     onItemToggle:()=>{},
     onItemMount:()=>{ return; },
     onItemUnmount:()=>{ return; },
-    onItemContentHeightChange:() => { return; }
+    onItemHeightChange:()=>{ return; }
 });
 
+       /*---------+
+        | CONTEXT |
+        +---------*/
+type AccordionTreeItemContextType = {
+    parentTreeItem: () => HTMLDivElement | null;
+    parentTreeItemContent: () => HTMLDivElement | null;
+}
+
+const AccordionTreeItemContext = React.createContext<AccordionTreeItemContextType>({
+    parentTreeItem: () => null,
+    parentTreeItemContent: () => null
+});
+
+       /*------------------+
+        | UTILITY FUNCTIONS |
+        +------------------*/
+const computeSpacing = (el: HTMLDivElement | null,opened: Set<HTMLDivElement>,openPaddingPx:number): number => {
+        
+    // NOT OPEN CASES 
+
+    // Null => padding contribute 0 always
+    if (!el) return 0;
+    // Close => padding contribute 0 always
+    const isOpen = opened.has(el);
+    if (!isOpen) return 0;
+
+    // OPEN CASES 
+
+    // Get previout and next element
+    const prev = el.previousElementSibling as HTMLDivElement|null;
+    const next = el.nextElementSibling as HTMLDivElement|null;
+    // Unique Child => 0 => no padding
+    if (!prev && !next) { return 0; }
+
+    // First Child => ha margin Bottom 16 solo se il secondo è chiuso, altrimenti 0
+    if(!prev && next) { return openPaddingPx/2; }
+
+    // Last Child => ha margin top 16 solo se il penultimo è chiuso, altrimenti 0
+    if(prev && !next) { return opened.has(prev) ? 0 : openPaddingPx/2; }
+
+    // Middle child => Ha tutti e 2 i padding se quello sopra è chiuso, altrimenti ne ha 1
+    if(prev && next) {
+        return opened.has(prev) ? openPaddingPx/2 : openPaddingPx;
+    }
+    return -1;
+}
+
+const openPaddingPx = (className:string): number => {
+    const el = document.createElement('div');
+    el.className = className;
+    el.style.position = 'absolute';
+    el.style.visibility = 'hidden';
+    el.style.pointerEvents = 'none';
+    document.body.appendChild(el);
+    const pt = parseFloat(window.getComputedStyle(el).paddingTop.replace('px',''));
+    const pb = parseFloat(window.getComputedStyle(el).paddingBottom.replace('px',''));            
+    document.body.removeChild(el);
+    return pt+pb;
+}
 
        /*-----------+
         | ACCORDION |
@@ -46,23 +105,41 @@ const AccordionTreeBase: React.ForwardRefExoticComponent<IAccordionTreeProps & R
     // Props
     const {children,singleOpen, ...divProps } = props;
     // Context
-    const {level:parentLevel} = React.useContext(AccordionTreeContext);       // To Get Level+1
-    const {notifyHeightChange,parentInfo} = React.useContext(AccordionTreeItemContext);  // To get Notify Height Change (in case of nested accordions Tree)
+    const {level:parentLevel,onItemHeightChange:updateParent} = React.useContext(AccordionTreeContext); // To Get Level+1
+    const {parentTreeItem,parentTreeItemContent} = React.useContext(AccordionTreeItemContext); // To Get Parent Item
     // States 
-    const [openItems, setOpenItems] = React.useState<Set<HTMLDivElement>>(new Set());
-    const [heightMap,setHeightMap]  = React.useState<Map<HTMLDivElement,[number,number]>>(new Map<HTMLDivElement,[number,number]>());
+    const [openItems, setOpenItems]  = React.useState<Set<HTMLDivElement>>(new Set());
+    const [heightMap,setHeightMap]   = React.useState<Map<HTMLDivElement,[number,number]>>(new Map<HTMLDivElement,[number,number]>());
     // Refs
     const level = React.useRef<number>(parentLevel+1);
     const wRef  = React.useRef<HTMLDivElement|null>(null);
-    const prevOpenItems = React.useRef<Set<HTMLDivElement>>(new Set())
-    // Forward Ref
+    const openPadPx = React.useRef<number>(openPaddingPx(css.accordionOpen));
+
+    // Link Forwarded div Ref with real div Ref
     React.useImperativeHandle<HTMLDivElement | null, HTMLDivElement | null>(ref, () => {
         return wRef.current;
     });
 
+    React.useLayoutEffect(()=>{
+        const parentNode = parentTreeItem();
+        const parentNodeContent = parentTreeItemContent();
+        if(level.current===0 || parentNode===null || parentNodeContent===null){ return; }
+        // Update spacingMap and total height
+        const currentSpacingMap = new Map<HTMLDivElement,number>();
+        const currentTotalHeight = Array.from(heightMap.entries()).reduce<number>((p,[ref,[closeHeight,contentHeight]])=>{
+            const padding = computeSpacing(ref,openItems,openPadPx.current);
+            currentSpacingMap.set(ref,padding);
+            return (openItems.has(ref) ? p+closeHeight+contentHeight : p+closeHeight) + padding;
+        },0);
+        const parentOffset = 
+            parseFloat(window.getComputedStyle(parentNodeContent).paddingTop.replace('px','')) + 
+            parseFloat(window.getComputedStyle(parentNodeContent).paddingBottom.replace('px',''));
+        updateParent(parentNode,currentTotalHeight+parentOffset);
+    },[openItems,heightMap,updateParent,parentTreeItem,parentTreeItemContent]);
+
+
     const onItemToggle = React.useCallback((element: HTMLDivElement) => {
         setOpenItems(p => {
-            prevOpenItems.current = new Set(p);
             if(p.has(element)){
                 const c = new Set<HTMLDivElement>(p);
                 c.delete(element);
@@ -77,115 +154,38 @@ const AccordionTreeBase: React.ForwardRefExoticComponent<IAccordionTreeProps & R
         });
     },[singleOpen]);
 
-    const openPaddingPx = React.useMemo((): number => {
-        const el = document.createElement('div');
-        el.className = css.accordionOpen;
-        el.style.position = 'absolute';
-        el.style.visibility = 'hidden';
-        el.style.pointerEvents = 'none';
-        document.body.appendChild(el);
-        const pt = parseFloat(window.getComputedStyle(el).paddingTop.replace('px',''));
-        const pb = parseFloat(window.getComputedStyle(el).paddingBottom.replace('px',''));            
-        document.body.removeChild(el);
-        return pt+pb;
-    },[])
-
-    const computeSpacing = React.useCallback((el: HTMLDivElement | null,opened: Set<HTMLDivElement>): number => {
-        
-        // NOT OPEN CASES 
-
-        // Null => padding contribute 0 always
-        if (!el) return 0;
-        // Close => padding contribute 0 always
-        const isOpen = opened.has(el);
-        if (!isOpen) return 0;
-
-        // OPEN CASES 
-
-        // Get previout and next element
-        const prev = el.previousElementSibling as HTMLDivElement|null;
-        const next = el.nextElementSibling as HTMLDivElement|null;
-        // Unique Child => 0 => no padding
-        if (!prev && !next) { return 0; }
-
-        // First Child => ha margin Bottom 16 solo se il secondo è chiuso, altrimenti 0
-        if(!prev && next) { return openPaddingPx/2; }
-
-        // Last Child => ha margin top 16 solo se il penultimo è chiuso, altrimenti 0
-        if(prev && !next) { return opened.has(prev) ? 0 : openPaddingPx/2; }
-
-        // Middle child => Ha tutti e 2 i padding se quello sopra è chiuso, altrimenti ne ha 1
-        if(prev && next) {
-            return opened.has(prev) ? openPaddingPx/2 : openPaddingPx;
-        }
-        return -1;
-    }, [openPaddingPx]);
-
-    // When HeightMap or opened element change, global height change => notify to parent nested AccordionTree
-    const prevTotalHeight = React.useRef<number>(0);
-    React.useLayoutEffect(()=>{
-        if(level.current===0){ return; }
-        const currentTotalHeight = Array.from(heightMap.entries()).reduce<number>((p,[ref,[closeHeight,contentHeight]])=>{
-            const padding = computeSpacing(ref,openItems)
-            return (openItems.has(ref) ? p+closeHeight+contentHeight : p+closeHeight) + padding;
-        },0);
-        const delta = currentTotalHeight-prevTotalHeight.current;
-        prevTotalHeight.current = currentTotalHeight;
-
-        const {open,itemBox,contentBox} = parentInfo();
-        const isParentMounted = itemBox!==null;
-        const isParentContentMounted = contentBox!==null;
-        // If Parent is Opened and mounted => Notify 
-        if(isParentMounted && isParentContentMounted){
-            notifyHeightChange(delta,!open);
-        } 
-
-    },[openItems,heightMap,notifyHeightChange,parentInfo,computeSpacing])
-
     const onItemMount = React.useCallback((element:HTMLDivElement,closeHeight:number,contentHeight:number) => {
-        setHeightMap((p)=>{ 
-            if(p.has(element)){ return p; }
-            return new Map(p).set(element,[closeHeight,contentHeight]); 
-        })
-        // if(initialOpen){ 
-        //     setOpenItems((p)=>{
-        //         prevOpenItems.current = new Set(p);
-        //         return new Set(p).add(element); 
-        //     }) 
-        // }
+        setHeightMap(p=>new Map(p.set(element,[closeHeight,contentHeight])));
     },[]);
-
+    
     const onItemUnmount = React.useCallback((element:HTMLDivElement) => {
-        setHeightMap((p)=>{ 
-            if(!p.has(element)){ return p; }
-            const c = new Map(p); p.delete(element); 
-            return c; 
-        })
+        setHeightMap(p=>{
+            const c = new Map(p);
+            c.delete(element);
+            return c;
+        });
         setOpenItems(p=>{
-            prevOpenItems.current = new Set(p);
             const c = new Set(p); c.delete(element); return c; 
         })
+        
     },[]);
 
-    const onItemContentHeightChange = React.useCallback((element:HTMLDivElement,deltaContentHeight:number) => {
-        setHeightMap((p)=>{ 
-            const h = p.get(element);
-            if(h===undefined){ return p; }
-            return new Map(p).set(element,[h[0],h[1]+deltaContentHeight]); 
+    const onItemHeightChange = React.useCallback((element:HTMLDivElement,contentHeight:number) => {
+        setHeightMap(p=>{
+            if(p.has(element)){
+                const c = new Map(p);
+                const [closeHeight] = c.get(element)!;
+                c.set(element,[closeHeight,contentHeight]);
+                return c;
+            } else {
+                return p
+            }
         })
-    },[])
+    },[]);
 
     const ctx:AccordionTreeContextType = React.useMemo<AccordionTreeContextType>(()=>{
-        return { 
-            level:level.current,
-            openItems, 
-            heightMap,
-            onItemToggle,
-            onItemMount,
-            onItemUnmount,
-            onItemContentHeightChange
-        }
-    },[openItems,heightMap,onItemMount,onItemUnmount,onItemToggle,onItemContentHeightChange])
+        return { onItemToggle, onItemMount, onItemUnmount, onItemHeightChange, level: level.current, openItems, heightMap };
+    },[onItemToggle, onItemMount, onItemUnmount, onItemHeightChange, openItems, heightMap])
 
     return (
         <AccordionTreeContext.Provider value={ctx}>
@@ -194,20 +194,6 @@ const AccordionTreeBase: React.ForwardRefExoticComponent<IAccordionTreeProps & R
             </div>
         </AccordionTreeContext.Provider>
     )
-});
-
-
-       /*---------+
-        | CONTEXT |
-        +---------*/
-type AccordionTreeItemContextType = {
-    notifyHeightChange:(height:number,notRecursive?:boolean) => void;
-    parentInfo(): IAccordionItemParentInfo
-}
-
-const AccordionTreeItemContext = React.createContext<AccordionTreeItemContextType>({
-    notifyHeightChange:() => { return; },
-    parentInfo:()=>{return { open: false, itemBox:null, contentBox: null }; }
 });
 
        /*----------------+
@@ -221,111 +207,28 @@ type IAccordionTreeItemInnerProps = Omit<React.HTMLAttributes<HTMLDivElement | n
     arrowStyle?: 'chevron'|'cared'
 };
 
-type IAccordionItemParentInfo = {open: boolean, itemBox: HTMLDivElement|null, contentBox: HTMLDivElement|null}
-
 const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInnerProps & React.RefAttributes<HTMLDivElement | null>> = React.forwardRef<HTMLDivElement | null, IAccordionTreeItemInnerProps>((props: IAccordionTreeItemInnerProps, ref: React.ForwardedRef<HTMLDivElement | null>) => {
     // Props
     const {children,arrowStyle,closeDelay,unmountOnClose,title } = props;
     // Context
-    const {onItemToggle,onItemMount,onItemUnmount,onItemContentHeightChange,openItems,heightMap} = React.useContext<AccordionTreeContextType>(AccordionTreeContext);
+    const {onItemToggle,onItemMount,onItemUnmount,onItemHeightChange,openItems,heightMap} = React.useContext<AccordionTreeContextType>(AccordionTreeContext);
     // States
-    const [maxHeight,setMaxHeight] = React.useState(0);
-    // Refs 
+    const [isOpen, setIsOpen] = React.useState<boolean>(false);
+    const [active, setActive] = React.useState<boolean>(false);
+    const [contentHeight, setContentHeight] = React.useState<number>(0);
+    // Refs
     const wRef = React.useRef<HTMLDivElement | null>(null);
-    const hRef = React.useRef<HTMLButtonElement|null>(null);
-    const cRef = React.useRef<HTMLDivElement|null>(null);
-    const dRef = React.useRef<HTMLDivElement|null>(null);
-    const info = React.useRef<IAccordionItemParentInfo>({ open: false, itemBox: wRef.current, contentBox: cRef.current })
-    // Derived States
-    const isOpen=React.useMemo(()=>{ 
-        const open = wRef.current!==null && openItems.has(wRef.current!);
-        info.current.open = open;
-        return open;
-    },[openItems])
-    
-    
+    const cRef = React.useRef<HTMLDivElement | null>(null);
+    const bRef = React.useRef<HTMLButtonElement | null>(null);
+    const dRef = React.useRef<HTMLDivElement | null>(null);
+    const isAnimate = React.useRef<boolean>(false);
+
     // Link Forwarded div Ref with real div Ref
     React.useImperativeHandle<HTMLDivElement | null, HTMLDivElement | null>(ref, () => {
         return wRef.current;
     });
 
-    const getRuntimeHeight = React.useCallback((element:HTMLElement) => {     
-        const style = window.getComputedStyle(element);
-        return element.scrollHeight+parseFloat(style.marginTop)+parseFloat(style.marginBottom)+parseFloat(style.borderTopWidth)+parseFloat(style.borderBottomWidth);
-    },[]);
-
-    // MOUNT / UNMOUNT FULL COMPONENT
-    const onMount = React.useRef<()=>void>(()=>{
-        info.current.itemBox = wRef.current;
-        if ([wRef,dRef,hRef].some(e=>e.current===null)) { return; } // cRef can be null (unmountOnClose=true)
-        // const h = wRef.current.scrollHeight;
-        const closeHeight   = getRuntimeHeight(hRef.current!)+getRuntimeHeight(dRef.current!)
-        const contentHeight = cRef.current===null ? 0 : getRuntimeHeight(cRef.current!); // Cref is null in case of close element with unmountOnClose=true 
-        onItemMount(wRef.current!,closeHeight,contentHeight);
-    })
-
-    const onUnmount = React.useRef<()=>void>(()=>{
-        info.current.itemBox = wRef.current;
-        if (wRef.current===null) { return; }
-        onItemUnmount(wRef.current);
-    })
-
-    React.useLayoutEffect(() => {
-        const mount = onMount.current; 
-        const unmount = onUnmount.current;
-        mount();
-        return () => { unmount(); }
-    }, []);
-
-
-    // MOUNT / UNMOUNT OF CONTENT
-    const onContentMount = React.useCallback((ref:HTMLDivElement|null) => {
-        cRef.current = ref;
-        info.current.contentBox = ref;
-        if(!unmountOnClose){ return; }
-        if(wRef.current===null){ return; }
-        const contentHeight = ref!==null ? getRuntimeHeight(ref) : 0;
-        onItemContentHeightChange(wRef.current,contentHeight)
-    },[unmountOnClose,getRuntimeHeight,onItemContentHeightChange])
-
-
-
-    React.useLayoutEffect(()=>{
-        if(wRef.current===null){ return; }
-        const h = heightMap.get(wRef.current);
-        if(h===undefined){ return; }
-        const [,contentHeight] = h;
-        setMaxHeight(()=>isOpen?contentHeight:0)
-    },[heightMap,isOpen])
-
-    // DEBUG ! ! ! ! ! 
-    React.useLayoutEffect(()=>{
-        setTimeout(()=>{
-            // if(!['Section2','Section2.1','Section2.1.3'].includes(wRef.current?.id ?? '')){return;}
-            if(cRef.current!==null){
-                const realH = parseFloat(window.getComputedStyle(cRef.current!).height.replace('px',''));
-                const reahPT = parseFloat(window.getComputedStyle(cRef.current!).paddingTop.replace('px',''));
-                const reahPB = parseFloat(window.getComputedStyle(cRef.current!).paddingBottom.replace('px',''));
-                console.log(wRef.current?.id,info.current.open ?maxHeight:0,realH+reahPB+reahPT);
-            } else {
-                console.log(maxHeight,null)
-            }
-        },500)
-    },[maxHeight])
-
-    
-    
-
-    // Toggle Click
-    const [active, setActive] = React.useState<boolean>(isOpen);
-    const isAnimate = React.useRef<boolean>(false);
-
-    const toggleChild = React.useCallback((event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-        if(wRef.current===null){ return; } 
-        if(isAnimate.current){ return; }
-        onItemToggle(wRef.current);
-    },[onItemToggle])
-
+    // ANIMATION SPAM AVOIDANCE
     React.useEffect(()=>{
         let timer:NodeJS.Timer|undefined = undefined;
         const MSEC = closeDelay === undefined ? 300 : Math.max(0,closeDelay);
@@ -344,39 +247,82 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
         }; 
     },[isOpen,closeDelay])
 
+    // OPEN && HEIGHT CHANGES
+    React.useEffect(()=>{
+        const isOpen = wRef.current!==null && openItems.has(wRef.current!);
+        const contentHeight = heightMap.get(wRef.current!)?.[1] ?? 0;
+        setIsOpen(isOpen);
+        setContentHeight(contentHeight);
+    },[openItems,heightMap])
 
-    // Context methods
-    const notifyHeightChange = React.useCallback((delta:number,notRecursive?:boolean)=>{
-        if(wRef.current===null){ return; }
-        setMaxHeight(p=>{ return p+delta });
-        if(notRecursive){ return; }
-        onItemContentHeightChange(wRef.current,delta) // RECURSIVE STEP
-    },[onItemContentHeightChange])
+    const getRuntimeHeight = React.useCallback((element:HTMLElement) => {     
+        const style = window.getComputedStyle(element);
+        return element.scrollHeight+parseFloat(style.marginTop)+parseFloat(style.marginBottom)+parseFloat(style.borderTopWidth)+parseFloat(style.borderBottomWidth);
+    },[]);
 
-    const parentInfo = React.useCallback(()=>{
-        return info.current;
-    },[])
+    // ON COMPONENT MOUNT / UNMOUNT
+    const onItemInitOrDestroyEventHandler = React.useCallback((ref:HTMLDivElement)=>{
+        if(ref!==null){ // Mount case
+            const closeHeight   = getRuntimeHeight(bRef.current!)+getRuntimeHeight(dRef.current!)
+            const contentHeight = cRef.current===null ? 0 : getRuntimeHeight(cRef.current!);
+            
+            onItemMount(ref,closeHeight,contentHeight);
+        } else { // Unmount case
+            onItemUnmount(wRef.current!);
+        }
+        wRef.current = ref;
+    },[getRuntimeHeight,onItemMount,onItemUnmount])
+
+    // ON COMPONENT CONTENT MOUNT / UNMOUNT
+    const onContentInitOrDestroyEventHandler = React.useCallback((ref:HTMLDivElement)=>{
+        if(ref!==null){ // Mount case
+            if(wRef.current!==null){ onItemHeightChange(wRef.current!,getRuntimeHeight(ref)); }
+        } else { // Unmount case
+            if(wRef.current!==null){ onItemHeightChange(wRef.current!,0); }
+        }
+        cRef.current = ref;
+    },[getRuntimeHeight,onItemHeightChange])
+
+    const onToggleButtonClickEventHandler = React.useCallback((event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+        if(wRef.current===null){ return; } 
+        if(isAnimate.current){ return; }
+        onItemToggle(wRef.current);
+    },[onItemToggle])
 
     const ctx:AccordionTreeItemContextType = React.useMemo<AccordionTreeItemContextType>(()=>{
         return {
-            notifyHeightChange,
-            parentInfo
+            parentTreeItem: () => wRef.current,
+            parentTreeItemContent: () => cRef.current
         }
-    },[notifyHeightChange,parentInfo])
+    },[])
+
+
+    React.useLayoutEffect(()=>{
+        setTimeout(()=>{
+            if(!['Section2','Section2.1','Section2.1.3'].includes(wRef.current?.id ?? '')){return;}
+            if(cRef.current!==null){
+                const realH = parseFloat(window.getComputedStyle(cRef.current!).height.replace('px',''));
+                const reahPT = parseFloat(window.getComputedStyle(cRef.current!).paddingTop.replace('px',''));
+                const reahPB = parseFloat(window.getComputedStyle(cRef.current!).paddingBottom.replace('px',''));
+                console.log(wRef.current?.id?contentHeight:0,realH+reahPB+reahPT);
+            } else {
+                console.log(contentHeight,null)
+            }
+        },500)
+    },[contentHeight])
 
     return (
-        //  style={{marginTop: index===0 ? 0 : undefined, marginBottom: index===ctx.length()-1 ? 0 : undefined}}
         <AccordionTreeItemContext.Provider value={ctx}>
-            <div id={props.title} ref={wRef} className={`${css.accordion} ${isOpen ? css.accordionOpen : ''}`}>
-                <button ref={hRef} className={css.header} onClick={toggleChild}>
+            <div id={props.title} ref={onItemInitOrDestroyEventHandler} className={`${css.accordion} ${isOpen ? css.accordionOpen : ''}`}>
+                <button ref={bRef} className={css.header} onClick={onToggleButtonClickEventHandler}>
                     <span className={css.title}>{title}</span>
                     <span className={css.arrowWrapper}>
                         <span className={`${css.arrow} ${isOpen ? css.rotated : ''} ${css[arrowStyle ?? 'chevron']}`} />
                     </span>
                 </button>
-                <div className={`${css.content}`} style={{maxHeight}}>
+                <div className={`${css.content}`} style={{maxHeight: isOpen ? contentHeight+'px' : '0px'}}>
                     {(!unmountOnClose || active) &&
-                        <div ref={onContentMount} className={css.innerContent}>{children}</div>
+                        <div ref={onContentInitOrDestroyEventHandler} className={css.innerContent}>{children}</div>
                     }
                 </div>
                 <div ref={dRef} style={{borderBottom:'1px solid #ddd'}}></div>

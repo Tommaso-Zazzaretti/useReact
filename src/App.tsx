@@ -45,7 +45,7 @@ const App:React.FC<{}> = () => {
                 <AccordionTree singleOpen={false}>
 
                   <AccordionTree.Item title="Section2.1" unmountOnClose={false}>
-                      <AccordionTree singleOpen={true}>
+                      <AccordionTree singleOpen={false}>
 
                         <AccordionTree.Item title="Section2.1.1">
                           <div>Contenuto 2.1.1</div>
@@ -121,7 +121,7 @@ const App:React.FC<{}> = () => {
 
                 </AccordionTree>
             </AccordionTree.Item>
-
+            
             <AccordionTree.Item title="Section3">
               <div>Contenuto 3</div>
             </AccordionTree.Item>
