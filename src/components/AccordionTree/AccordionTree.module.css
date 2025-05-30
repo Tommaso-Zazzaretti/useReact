@@ -3,7 +3,6 @@
 }
   
  .accordion {
-    /* border-bottom: 1px solid #ddd; */
     transition: padding 0.3s ease;
     height: auto;
     padding:0;
@@ -25,7 +24,6 @@
     padding-bottom: 0px; 
 }
 
-
 .header {
     display: flex;
     justify-content: space-between;
@@ -40,6 +38,23 @@
     cursor: pointer;
     outline: none;
     transition: background 0.3s ease;
+}
+
+.content {
+    overflow: hidden;
+    margin:0;
+    padding:0;
+    border:0;
+    transition: max-height 0.3s ease;
+}
+  
+.innerContent {
+    padding: 16px 0px 16px 16px;
+    background-color: #fff;
+}
+
+.divider {
+    border-bottom: 1px solid #ddd;
 }
   
 .title {
@@ -120,17 +135,4 @@
   
 .arrow.caret.rotated {
     transform: rotate(90deg); /* ▶ diventa ▼ */
-}
-  
-.content {
-    overflow: hidden;
-    margin:0;
-    padding:0;
-    border:0;
-    transition: max-height 0.3s ease;
-}
-  
-.innerContent {
-    padding: 1rem;
-    background-color: #fff;
 }

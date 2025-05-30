@@ -277,7 +277,7 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
     },[openItems,heightMap])
 
     // ON COMPONENT MOUNT / UNMOUNT
-    const onItemInitOrDestroyEventHandler = React.useCallback((ref:HTMLDivElement)=>{
+    const onInitOrDestroyEventHandler = React.useCallback((ref:HTMLDivElement)=>{
         if(ref!==null){ // Mount case
             const closeHeight   = getRuntimeBlockHeight(bRef.current!)+getRuntimeBlockHeight(dRef.current!)
             const contentHeight = cRef.current===null ? 0 : getRuntimeBlockHeight(cRef.current!);
@@ -330,7 +330,7 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
 
     return (
         <AccordionTreeItemContext.Provider value={ctx}>
-            <div id={props.title} ref={onItemInitOrDestroyEventHandler} className={`${css.accordion} ${isOpen ? css.accordionOpen : ''}`}>
+            <div id={props.title} ref={onInitOrDestroyEventHandler} className={`${css.accordion} ${isOpen ? css.accordionOpen : ''}`}>
                 <button ref={bRef} className={css.header} onClick={onToggleButtonClickEventHandler}>
                     <span className={css.title}>{title}</span>
                     <span className={css.arrowWrapper}>
@@ -342,7 +342,7 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
                         <div ref={onContentInitOrDestroyEventHandler} className={css.innerContent}>{children}</div>
                     }
                 </div>
-                <div ref={dRef} style={{borderBottom:'1px solid #ddd'}}></div>
+                <div ref={dRef} className={css.divider}></div>
             </div>
         </AccordionTreeItemContext.Provider>
     );
