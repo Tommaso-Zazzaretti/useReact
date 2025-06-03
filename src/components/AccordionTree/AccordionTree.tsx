@@ -339,7 +339,7 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
                 </button>
                 <div className={`${css.content}`} style={{maxHeight: isOpen ? contentHeight+'px' : '0px'}}>
                     {(!unmountOnClose || active) &&
-                        <div ref={onContentInitOrDestroyEventHandler} className={css.innerContent}>{children}</div>
+                        <div ref={onContentInitOrDestroyEventHandler} className={`${css.innerContent} ${isOpen && active ? css.innerContentOpen : ''}`}>{children}</div>
                     }
                 </div>
                 <div ref={dRef} className={css.divider}></div>
