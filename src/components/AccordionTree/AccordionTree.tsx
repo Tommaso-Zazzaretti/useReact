@@ -225,7 +225,7 @@ type IAccordionTreeItemInnerProps = Omit<React.HTMLAttributes<HTMLDivElement | n
     title:string,
     unmountOnClose?: boolean
     closeDelay?: number,
-    arrowStyle?: 'chevron'|'cared'
+    arrowStyle?: 'chevron'|'caret'
 };
 
 const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInnerProps & React.RefAttributes<HTMLDivElement | null>> = React.forwardRef<HTMLDivElement | null, IAccordionTreeItemInnerProps>((props: IAccordionTreeItemInnerProps, ref: React.ForwardedRef<HTMLDivElement | null>) => {
@@ -332,10 +332,10 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
         <AccordionTreeItemContext.Provider value={ctx}>
             <div id={props.title} ref={onInitOrDestroyEventHandler} className={`${css.accordion} ${isOpen ? css.accordionOpen : ''}`}>
                 <button ref={bRef} className={css.header} onClick={onToggleButtonClickEventHandler}>
-                    <span className={css.title}>{title}</span>
                     <span className={css.arrowWrapper}>
                         <span className={`${css.arrow} ${isOpen ? css.rotated : ''} ${css[arrowStyle ?? 'chevron']}`} />
                     </span>
+                    <span className={css.title}>{title}</span>
                 </button>
                 <div className={`${css.content}`} style={{maxHeight: isOpen ? contentHeight+'px' : '0px'}}>
                     {(!unmountOnClose || active) &&
