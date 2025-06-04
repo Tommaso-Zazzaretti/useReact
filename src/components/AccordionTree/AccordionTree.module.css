@@ -26,24 +26,35 @@
 
 .header {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
     gap: 1rem;
     width: 100%;
     background-color: #f9f9f9;
     position: relative;
     padding: 0.9rem;
-    border: none;
+    border: 0;
+    margin:0;
     font-size: 0.8rem;
     font-weight: bold;
-    text-align: left;
     cursor: pointer;
-    outline: none;
     z-index: 0;
     transition: box-shadow 0.3s ease, background-color 0.3s ease;
 }
 
+.text {
+    text-align: left;
+    color: inherit;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 
+.icon {
+    flex:0;
+}
 
 @media (hover: hover) and (pointer: fine) {
     .header:hover {
@@ -51,11 +62,6 @@
         background-color: rgb(237, 243, 253);
         z-index: 1;
     }
-}
-
-.title {
-    flex: 1;
-    text-align: left;
 }
 
 .content {
@@ -81,77 +87,4 @@
 
 .divider {
     border-bottom: 1px solid #ddd;
-}
-  
-.arrowWrapper {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-}
-  
-.arrow {
-    display: inline-block;
-    height: 1rem;
-    transition: transform 0.3s ease;
-}
-  
-.arrow.chevron::before {
-    content: '';
-    display: block;
-    width: 0.5rem;
-    height: 0.5rem;
-    border-right: 2px solid currentColor;
-    border-bottom: 2px solid currentColor;
-    transform: rotate(45deg);
-    transition: transform 0.3s ease;
-}
-  
-.arrow.chevron.rotated::before {
-    transform: rotate(225deg);
-}
-  
-.arrow.plus-minus {
-    position: relative;
-    width: 1rem;
-    height: 1rem;
-}
-  
-.arrow.plus-minus::before,
-.arrow.plus-minus::after {
-    content: '';
-    position: absolute;
-    background-color: currentColor;
-    transition: transform 0.3s ease, opacity 0.2s ease;
-}
-  
-.arrow.plus-minus::before {
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 2px;
-    transform: translateY(-50%);
-}
-  
-.arrow.plus-minus::after {
-    left: 50%;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    transform: translateX(-50%);
-}
-  
-.arrow.plus-minus.rotated::after {
-    opacity: 0; /* Nasconde la linea verticale → da + a - */
-}
-  
-.arrow.caret {
-    width: 0.6rem;
-    height: 0.6rem;
-    background-color: currentColor;
-    clip-path: polygon(0% 0%, 100% 50%, 0% 100%);
-    transition: transform 0.3s ease;
-}
-  
-.arrow.caret.rotated {
-    transform: rotate(90deg); /* ▶ diventa ▼ */
 }

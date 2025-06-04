@@ -1,5 +1,6 @@
 import React from "react";
 import css from './AccordionTree.module.css';
+import RotatingIcon, { IRotatingIconProps } from "../RotatingIcon/RotatingIcon";
 
        /*-------------------+
         | CONTEXT ACCORDION |
@@ -223,14 +224,26 @@ const AccordionTreeBase: React.ForwardRefExoticComponent<IAccordionTreeProps & R
 type IAccordionTreeItemInnerProps = Omit<React.HTMLAttributes<HTMLDivElement | null>, 'children'|'title'> & {
     children: React.ReactElement<unknown, string | React.JSXElementConstructor<unknown>>
     title:string,
+    headerProps?: IHeaderProps
+    headerContentProps?: IHeaderContentRenderProps | IHeaderContentProps
+    contentProps?: IContentProps
+    innerContentProps?: IInnerContentProps
     unmountOnClose?: boolean
-    closeDelay?: number,
-    arrowStyle?: 'chevron'|'caret'
+    closeDelay?: number
 };
+
+// Header Props
+export type IHeaderProps = Omit<React.HTMLAttributes<HTMLButtonElement | null>, 'children'|'title'|'ref'>;
+export type IHeaderContentProps        = { renderHeaderContent?:    never   , iconProps: Omit<IRotatingIconProps,'isOpen'> & {position:'start'|'end'} }
+export type IHeaderContentRenderProps  = { renderHeaderContent: JSX.Element , iconProps?: never }
+// Content Props
+export type IContentProps      = Omit<React.HTMLAttributes<HTMLDivElement | null>, 'children'>;
+export type IInnerContentProps = Omit<React.HTMLAttributes<HTMLDivElement | null>, 'children'|'ref'>;
+
 
 const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInnerProps & React.RefAttributes<HTMLDivElement | null>> = React.forwardRef<HTMLDivElement | null, IAccordionTreeItemInnerProps>((props: IAccordionTreeItemInnerProps, ref: React.ForwardedRef<HTMLDivElement | null>) => {
     // Props
-    const {children,arrowStyle,closeDelay,unmountOnClose,title } = props;
+    const {children,headerProps,headerContentProps,contentProps,innerContentProps,closeDelay,unmountOnClose } = props;
     // Context
     const {onItemToggle,onItemMount,onItemUnmount,onItemHeightChange,openItems,heightMap} = React.useContext<AccordionTreeContextType>(AccordionTreeContext);
     // States
@@ -301,10 +314,11 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
     },[onItemHeightChange])
 
     const onToggleButtonClickEventHandler = React.useCallback((event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+        headerProps?.onClick?.(event);
         if(wRef.current===null){ return; } 
         if(isAnimate.current){ return; }
         onItemToggle(wRef.current);
-    },[onItemToggle])
+    },[onItemToggle,headerProps])
 
     const ctx:AccordionTreeItemContextType = React.useMemo<AccordionTreeItemContextType>(()=>{
         return {
@@ -328,20 +342,41 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
     //     },500)
     // },[contentHeight])
 
+    const icon = React.useMemo(()=>{
+        return <RotatingIcon 
+            direction={headerContentProps?.iconProps?.direction ?? "top-bottom"} 
+            type={headerContentProps?.iconProps?.type ?? "chevron"}
+            isOpen={isOpen}
+            className={css.icon}
+        />
+    },[isOpen,headerContentProps])
+
     return (
         <AccordionTreeItemContext.Provider value={ctx}>
-            <div id={props.title} ref={onInitOrDestroyEventHandler} className={`${css.accordion} ${isOpen ? css.accordionOpen : ''}`}>
-                <button ref={bRef} className={css.header} onClick={onToggleButtonClickEventHandler}>
-                    <span className={css.arrowWrapper}>
-                        <span className={`${css.arrow} ${isOpen ? css.rotated : ''} ${css[arrowStyle ?? 'chevron']}`} />
-                    </span>
-                    <span className={css.title}>{title}</span>
+            <div ref={onInitOrDestroyEventHandler} className={`${css.accordion} ${isOpen ? css.accordionOpen : ''}`}>
+
+                <button {...headerProps ?? {}} ref={bRef} className={`${css.header} ${headerProps?.className ?? ''}`} onClick={onToggleButtonClickEventHandler}>
+                    {
+                        headerContentProps?.renderHeaderContent===undefined
+                            ?  
+                                <React.Fragment>
+                                    {(headerContentProps?.iconProps?.position==='start') && icon}
+                                    <span className={css.text}>{props.title}</span>
+                                    {(headerContentProps?.iconProps?.position==='end' || headerContentProps?.iconProps?.position===undefined) && icon}
+                                </React.Fragment>
+                            :
+                                headerContentProps.renderHeaderContent
+                    }
                 </button>
-                <div className={`${css.content}`} style={{maxHeight: isOpen ? contentHeight+'px' : '0px'}}>
+
+                <div {...contentProps ?? {}} className={`${css.content} ${contentProps?.className ?? ''}`} style={{...contentProps?.style ?? {}, maxHeight: isOpen ? contentHeight+'px' : '0px'}}>
                     {(!unmountOnClose || active) &&
-                        <div ref={onContentInitOrDestroyEventHandler} className={`${css.innerContent} ${isOpen && active ? css.innerContentOpen : ''}`}>{children}</div>
+                        <div {...innerContentProps ?? {}} ref={onContentInitOrDestroyEventHandler} className={`${css.innerContent} ${isOpen && active ? css.innerContentOpen : ''} ${innerContentProps?.className ?? ''}`}>
+                            {children}
+                        </div>
                     }
                 </div>
+
                 <div ref={dRef} className={css.divider}></div>
             </div>
         </AccordionTreeItemContext.Provider>

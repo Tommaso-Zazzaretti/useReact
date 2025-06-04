@@ -85,3 +85,16 @@
     opacity: 0.0 !important;
     transition: opacity 300ms ease-in-out !important;
 }
+
+
+
+
+.accordionHeader {
+    background-color: rgb(253, 253, 237) !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .accordionHeader:hover {
+        background-color: rgb(253, 238, 237) !important;
+    }
+}

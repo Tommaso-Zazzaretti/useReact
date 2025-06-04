@@ -30,14 +30,14 @@ const App:React.FC<{}> = () => {
           <br></br>
           <br></br>
           <AccordionTree singleOpen>
-            <AccordionTree.Item title="Section1">
+            <AccordionTree.Item title="Section1" headerProps={{className: css.accordionHeader}} headerContentProps={{renderHeaderContent: <p>Section 1</p>}}>
               <div>Contenuto 1</div>
             </AccordionTree.Item>
 
-            <AccordionTree.Item title="Section2" unmountOnClose={false}>
+            <AccordionTree.Item title="Section2" unmountOnClose={false} headerProps={{className: css.accordionHeader}} headerContentProps={{renderHeaderContent: <p>Section 2</p> }}>
                 <AccordionTree singleOpen={false}>
 
-                  <AccordionTree.Item title="Section2.1" unmountOnClose={false}>
+                  <AccordionTree.Item title="Section2.1" unmountOnClose={false} headerContentProps={{iconProps: {position:"start",direction:'right-bottom', type:'chevron'}}}>
                       <AccordionTree singleOpen={false}>
 
                         <AccordionTree.Item title="Section2.1.1">
@@ -107,11 +107,11 @@ const App:React.FC<{}> = () => {
                 </AccordionTree>
             </AccordionTree.Item>
             
-            <AccordionTree.Item title="Section3">
+            <AccordionTree.Item title="Section3" headerProps={{className: css.accordionHeader}} headerContentProps={{renderHeaderContent: <p>Section 3</p>}}>
               <div>Contenuto 3</div>
             </AccordionTree.Item>
 
-             <AccordionTree.Item title="Section4">
+             <AccordionTree.Item title="Section4" headerProps={{className: css.accordionHeader}} headerContentProps={{renderHeaderContent: <p>Section 4</p>}}>
               <div>Contenuto 4</div>
             </AccordionTree.Item>
             
