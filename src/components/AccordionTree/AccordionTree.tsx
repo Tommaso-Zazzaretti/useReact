@@ -10,6 +10,8 @@ type AccordionTreeContextType = {
     level: number; 
     // Per far capire ai figli se devono chidersi
     openItems: Set<HTMLDivElement>, 
+    // Padding tra figli aperti
+    spacing: number,
     // Mappa altezze
     heightMap: Map<HTMLDivElement,[number,number]>,
     // Metodo che i figli devono invocare per comunicare al parent l'inversione di stato
@@ -24,6 +26,7 @@ type AccordionTreeContextType = {
 
 const AccordionTreeContext = React.createContext<AccordionTreeContextType>({
     level: -1,
+    spacing: -1,
     openItems: new Set<HTMLDivElement>(),
     heightMap: new Map<HTMLDivElement,[number,number]>(),
     onItemToggle:()=>{},
@@ -117,15 +120,16 @@ const getRuntimeBlockHeight = (element:HTMLElement) => {
         | ACCORDION |
         +-----------*/
 export type IAccordionTreeProps = Omit<React.HTMLAttributes<HTMLDivElement>, 'children'> & {
-  children: 
-    | React.ReactElement<IAccordionTreeItemProps, string | React.JSXElementConstructor<typeof AccordionTree.Item>> 
-    | React.ReactElement<IAccordionTreeItemProps, string | React.JSXElementConstructor<typeof AccordionTree.Item>>[]
-  singleOpen?: boolean
+    children: 
+        | React.ReactElement<IAccordionTreeItemProps, string | React.JSXElementConstructor<typeof AccordionTree.Item>> 
+        | React.ReactElement<IAccordionTreeItemProps, string | React.JSXElementConstructor<typeof AccordionTree.Item>>[]
+    singleOpen?: boolean
+    spacing?: number
 };
 
 const AccordionTreeBase: React.ForwardRefExoticComponent<IAccordionTreeProps & React.RefAttributes<HTMLDivElement | null>> = React.forwardRef<HTMLDivElement | null, IAccordionTreeProps>((props: IAccordionTreeProps, ref: React.ForwardedRef<HTMLDivElement | null>) => {
     // Props
-    const {children,singleOpen, ...divProps } = props;
+    const {children,singleOpen,spacing, ...divProps } = props;
     // Context
     const {level:parentLevel,onItemHeightChange:updateParent} = React.useContext(AccordionTreeContext); // To Get Level+1
     const {parentTreeItem,parentTreeItemContent} = React.useContext(AccordionTreeItemContext); // To Get Parent Item
@@ -149,7 +153,7 @@ const AccordionTreeBase: React.ForwardRefExoticComponent<IAccordionTreeProps & R
         // Update spacingMap and total height
         const currentSpacingMap = new Map<HTMLDivElement,number>();
         const currentTotalHeight = Array.from(heightMap.entries()).reduce<number>((p,[ref,[closeHeight,contentHeight]])=>{
-            const padding = computeSpacing(ref,openItems,openPadPx.current);
+            const padding = computeSpacing(ref,openItems, spacing!==undefined ? spacing*2 : openPadPx.current);
             currentSpacingMap.set(ref,padding);
             return (openItems.has(ref) ? p+closeHeight+contentHeight : p+closeHeight) + padding;
         },0);
@@ -157,7 +161,7 @@ const AccordionTreeBase: React.ForwardRefExoticComponent<IAccordionTreeProps & R
             parseFloat(window.getComputedStyle(parentNodeContent).paddingTop.replace('px','')) + 
             parseFloat(window.getComputedStyle(parentNodeContent).paddingBottom.replace('px',''));
         updateParent(parentNode,currentTotalHeight+parentOffset);
-    },[openItems,heightMap,updateParent,parentTreeItem,parentTreeItemContent]);
+    },[spacing,openItems,heightMap,updateParent,parentTreeItem,parentTreeItemContent]);
 
 
     const onItemToggle = React.useCallback((element: HTMLDivElement) => {
@@ -206,8 +210,8 @@ const AccordionTreeBase: React.ForwardRefExoticComponent<IAccordionTreeProps & R
     },[]);
 
     const ctx:AccordionTreeContextType = React.useMemo<AccordionTreeContextType>(()=>{
-        return { onItemToggle, onItemMount, onItemUnmount, onItemHeightChange, level: level.current, openItems, heightMap };
-    },[onItemToggle, onItemMount, onItemUnmount, onItemHeightChange, openItems, heightMap])
+        return { onItemToggle, onItemMount, onItemUnmount, onItemHeightChange, level: level.current, openItems, heightMap, spacing: spacing ?? openPadPx.current/2 };
+    },[onItemToggle, onItemMount, onItemUnmount, onItemHeightChange, openItems, heightMap, spacing])
 
     return (
         <AccordionTreeContext.Provider value={ctx}>
@@ -222,7 +226,7 @@ const AccordionTreeBase: React.ForwardRefExoticComponent<IAccordionTreeProps & R
         | ACCORDION ITEM |
         +----------------*/
 type IAccordionTreeItemInnerProps = Omit<React.HTMLAttributes<HTMLDivElement | null>, 'children'|'title'> & {
-    children: React.ReactElement<unknown, string | React.JSXElementConstructor<unknown>>
+    children: React.ReactElement<unknown, string | React.JSXElementConstructor<unknown>>,
     title:string,
     headerProps?: IHeaderProps
     headerContentProps?: IHeaderContentRenderProps | IHeaderContentProps
@@ -235,17 +239,17 @@ type IAccordionTreeItemInnerProps = Omit<React.HTMLAttributes<HTMLDivElement | n
 // Header Props
 export type IHeaderProps = Omit<React.HTMLAttributes<HTMLButtonElement | null>, 'children'|'title'|'ref'>;
 export type IHeaderContentProps        = { renderHeaderContent?:    never   , iconProps: Omit<IRotatingIconProps,'isOpen'> & {position:'start'|'end'} }
-export type IHeaderContentRenderProps  = { renderHeaderContent: JSX.Element , iconProps?: never }
+export type IHeaderContentRenderProps  = { renderHeaderContent: (open:boolean) => JSX.Element , iconProps?: never }
 // Content Props
 export type IContentProps      = Omit<React.HTMLAttributes<HTMLDivElement | null>, 'children'>;
-export type IInnerContentProps = Omit<React.HTMLAttributes<HTMLDivElement | null>, 'children'|'ref'>;
+export type IInnerContentProps = Omit<React.HTMLAttributes<HTMLDivElement | null>, 'children'|'ref'|'className'> & {className: {init: string, open: string }};
 
 
 const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInnerProps & React.RefAttributes<HTMLDivElement | null>> = React.forwardRef<HTMLDivElement | null, IAccordionTreeItemInnerProps>((props: IAccordionTreeItemInnerProps, ref: React.ForwardedRef<HTMLDivElement | null>) => {
     // Props
-    const {children,headerProps,headerContentProps,contentProps,innerContentProps,closeDelay,unmountOnClose } = props;
+    const {children,headerProps,headerContentProps,contentProps,innerContentProps,closeDelay,unmountOnClose, ...divProps } = props;
     // Context
-    const {onItemToggle,onItemMount,onItemUnmount,onItemHeightChange,openItems,heightMap} = React.useContext<AccordionTreeContextType>(AccordionTreeContext);
+    const {onItemToggle,onItemMount,onItemUnmount,onItemHeightChange,spacing,openItems,heightMap} = React.useContext<AccordionTreeContextType>(AccordionTreeContext);
     // States
     const [isOpen, setIsOpen] = React.useState<boolean>(false);
     const [active, setActive] = React.useState<boolean>(false);
@@ -330,17 +334,17 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
     // DEBUG
     // React.useLayoutEffect(()=>{
     //     setTimeout(()=>{
-    //         if(!['Section2','Section2.1','Section2.1.3'].includes(wRef.current?.id ?? '')){return;}
+    //         if(!['Section2','Section2.1','Section2.1.3'].includes(props.title ?? '')){return;}
     //         if(cRef.current!==null){
     //             const realH = parseFloat(window.getComputedStyle(cRef.current!).height.replace('px',''));
     //             const reahPT = parseFloat(window.getComputedStyle(cRef.current!).paddingTop.replace('px',''));
     //             const reahPB = parseFloat(window.getComputedStyle(cRef.current!).paddingBottom.replace('px',''));
-    //             console.log(wRef.current?.id?contentHeight:0,realH+reahPB+reahPT);
+    //             console.log(props.title?contentHeight:0,realH+reahPB+reahPT);
     //         } else {
     //             console.log(contentHeight,null)
     //         }
     //     },500)
-    // },[contentHeight])
+    // },[contentHeight,props.title])
 
     const icon = React.useMemo(()=>{
         return <RotatingIcon 
@@ -353,7 +357,7 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
 
     return (
         <AccordionTreeItemContext.Provider value={ctx}>
-            <div ref={onInitOrDestroyEventHandler} className={`${css.accordion} ${isOpen ? css.accordionOpen : ''}`}>
+            <div {...divProps} ref={onInitOrDestroyEventHandler} className={`${css.accordion} ${divProps.className ?? ''} ${isOpen ? `${css.accordionOpen}` : ''}`} style={{...divProps.style ?? {}, padding:isOpen ? `${spacing}px 0px` : 0}}>
 
                 <button {...headerProps ?? {}} ref={bRef} className={`${css.header} ${headerProps?.className ?? ''}`} onClick={onToggleButtonClickEventHandler}>
                     {
@@ -365,13 +369,13 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
                                     {(headerContentProps?.iconProps?.position==='end' || headerContentProps?.iconProps?.position===undefined) && icon}
                                 </React.Fragment>
                             :
-                                headerContentProps.renderHeaderContent
+                                headerContentProps.renderHeaderContent(isOpen)
                     }
                 </button>
 
                 <div {...contentProps ?? {}} className={`${css.content} ${contentProps?.className ?? ''}`} style={{...contentProps?.style ?? {}, maxHeight: isOpen ? contentHeight+'px' : '0px'}}>
                     {(!unmountOnClose || active) &&
-                        <div {...innerContentProps ?? {}} ref={onContentInitOrDestroyEventHandler} className={`${css.innerContent} ${isOpen && active ? css.innerContentOpen : ''} ${innerContentProps?.className ?? ''}`}>
+                        <div {...innerContentProps} ref={onContentInitOrDestroyEventHandler} className={`${css.innerContent} ${innerContentProps?.className.init ?? ''} ${isOpen && active ? `${css.innerContentOpen} ${innerContentProps?.className.open ?? ''}` : ''}`}>
                             {children}
                         </div>
                     }

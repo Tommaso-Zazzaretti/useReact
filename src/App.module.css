@@ -90,11 +90,18 @@
 
 
 .accordionHeader {
-    background-color: rgb(253, 253, 237) !important;
+    background-color: rgb(249, 253, 237) !important;
 }
-
 @media (hover: hover) and (pointer: fine) {
     .accordionHeader:hover {
-        background-color: rgb(253, 238, 237) !important;
+        background-color: rgb(241, 253, 237) !important;
     }
+}
+.innerContent {
+    /* add fade In content animation */
+    opacity: 0 !important;
+}
+.innerContentOpen {
+    /* add fade In content animation */
+    opacity: 1 !important;
 }

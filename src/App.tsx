@@ -30,11 +30,15 @@ const App:React.FC<{}> = () => {
           <br></br>
           <br></br>
           <AccordionTree singleOpen>
-            <AccordionTree.Item title="Section1" headerProps={{className: css.accordionHeader}} headerContentProps={{renderHeaderContent: <p>Section 1</p>}}>
+            <AccordionTree.Item title="Section1" headerProps={{className: css.accordionHeader}} headerContentProps={{renderHeaderContent:(open)=> <p>Section 1</p>}}>
               <div>Contenuto 1</div>
             </AccordionTree.Item>
 
-            <AccordionTree.Item title="Section2" unmountOnClose={false} headerProps={{className: css.accordionHeader}} headerContentProps={{renderHeaderContent: <p>Section 2</p> }}>
+            <AccordionTree.Item title="Section2" 
+              unmountOnClose={false} 
+              headerProps={{className: css.accordionHeader}} 
+              headerContentProps={{renderHeaderContent: (open)=><p>{'Section 2'+(open?' aperto':'')}</p> }} 
+              innerContentProps={{className:{init: css.innerContent, open: css.innerContentOpen}}}>
                 <AccordionTree singleOpen={false}>
 
                   <AccordionTree.Item title="Section2.1" unmountOnClose={false} headerContentProps={{iconProps: {position:"start",direction:'right-bottom', type:'chevron'}}}>
@@ -107,11 +111,11 @@ const App:React.FC<{}> = () => {
                 </AccordionTree>
             </AccordionTree.Item>
             
-            <AccordionTree.Item title="Section3" headerProps={{className: css.accordionHeader}} headerContentProps={{renderHeaderContent: <p>Section 3</p>}}>
+            <AccordionTree.Item title="Section3" headerProps={{className: css.accordionHeader}} headerContentProps={{renderHeaderContent:(open)=> <p>Section 3</p>}}>
               <div>Contenuto 3</div>
             </AccordionTree.Item>
 
-             <AccordionTree.Item title="Section4" headerProps={{className: css.accordionHeader}} headerContentProps={{renderHeaderContent: <p>Section 4</p>}}>
+             <AccordionTree.Item title="Section4" headerProps={{className: css.accordionHeader}} headerContentProps={{renderHeaderContent: (open)=><p>Section 4</p>}}>
               <div>Contenuto 4</div>
             </AccordionTree.Item>
             
