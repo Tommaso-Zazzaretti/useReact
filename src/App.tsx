@@ -34,7 +34,7 @@ const App:React.FC<{}> = () => {
               <div>Contenuto 1</div>
             </AccordionTree.Item>
 
-            <AccordionTree.Item title="Section2" 
+            <AccordionTree.Item title="Section2" disabled
               unmountOnClose={false} 
               headerProps={{className: css.accordionHeader}} 
               headerContentProps={{renderHeaderContent: (open)=><p>{'Section 2'+(open?' aperto':'')}</p> }} 

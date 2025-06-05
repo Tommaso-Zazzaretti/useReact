@@ -228,6 +228,7 @@ const AccordionTreeBase: React.ForwardRefExoticComponent<IAccordionTreeProps & R
 type IAccordionTreeItemInnerProps = Omit<React.HTMLAttributes<HTMLDivElement | null>, 'children'|'title'> & {
     children: React.ReactElement<unknown, string | React.JSXElementConstructor<unknown>>,
     title:string,
+    disabled?: boolean
     headerProps?: IHeaderProps
     headerContentProps?: IHeaderContentRenderProps | IHeaderContentProps
     contentProps?: IContentProps
@@ -237,7 +238,7 @@ type IAccordionTreeItemInnerProps = Omit<React.HTMLAttributes<HTMLDivElement | n
 };
 
 // Header Props
-export type IHeaderProps = Omit<React.HTMLAttributes<HTMLButtonElement | null>, 'children'|'title'|'ref'>;
+export type IHeaderProps = Omit<React.HTMLAttributes<HTMLButtonElement | null>, 'children'|'title'|'ref'|'disabled'>;
 export type IHeaderContentProps        = { renderHeaderContent?:    never   , iconProps: Omit<IRotatingIconProps,'isOpen'> & {position:'start'|'end'} }
 export type IHeaderContentRenderProps  = { renderHeaderContent: (open:boolean) => JSX.Element , iconProps?: never }
 // Content Props
@@ -247,7 +248,7 @@ export type IInnerContentProps = Omit<React.HTMLAttributes<HTMLDivElement | null
 
 const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInnerProps & React.RefAttributes<HTMLDivElement | null>> = React.forwardRef<HTMLDivElement | null, IAccordionTreeItemInnerProps>((props: IAccordionTreeItemInnerProps, ref: React.ForwardedRef<HTMLDivElement | null>) => {
     // Props
-    const {children,headerProps,headerContentProps,contentProps,innerContentProps,closeDelay,unmountOnClose, ...divProps } = props;
+    const {children,disabled,headerProps,headerContentProps,contentProps,innerContentProps,closeDelay,unmountOnClose, ...divProps } = props;
     // Context
     const {onItemToggle,onItemMount,onItemUnmount,onItemHeightChange,spacing,openItems,heightMap} = React.useContext<AccordionTreeContextType>(AccordionTreeContext);
     // States
@@ -359,7 +360,7 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
         <AccordionTreeItemContext.Provider value={ctx}>
             <div {...divProps} ref={onInitOrDestroyEventHandler} className={`${css.accordion} ${divProps.className ?? ''} ${isOpen ? `${css.accordionOpen}` : ''}`} style={{...divProps.style ?? {}, padding:isOpen ? `${spacing}px 0px` : 0}}>
 
-                <button {...headerProps ?? {}} ref={bRef} className={`${css.header} ${headerProps?.className ?? ''}`} onClick={onToggleButtonClickEventHandler}>
+                <button {...headerProps ?? {}} disabled={disabled} ref={bRef} className={`${css.header} ${headerProps?.className ?? ''}`} onClick={onToggleButtonClickEventHandler}>
                     {
                         headerContentProps?.renderHeaderContent===undefined
                             ?  
