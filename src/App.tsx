@@ -10,9 +10,16 @@ import AccordionTree from './components/AccordionTree/AccordionTree';
 const App:React.FC<{}> = () => {
 
   const [open,setOpen] = React.useState<boolean>(false);
+  const [openedItems,setOpenedItems] = React.useState<Array<HTMLDivElement>>([])
   const onScrollEventHandler = React.useCallback((top: number, left: number, scrollerRef: HTMLDivElement) => {
     scrollerRef.scrollTo({top,left});
   }, []);
+
+  const onToggleAccordionItem = (open:boolean,ref:HTMLDivElement)=>{
+    setOpenedItems(p=>{
+      return !open ? [...p, ref] : p.filter(e=>e!==ref)
+    })
+  }
 
   return (<Fragment>
     <Navbar/>
@@ -29,16 +36,12 @@ const App:React.FC<{}> = () => {
         <div style={{backgroundColor:'#EEEEFF', width:'100%', height:'100%',overflow:'auto'}}>
           <br></br>
           <br></br>
-          <AccordionTree singleOpen>
-            <AccordionTree.Item title="Section1" headerProps={{className: css.accordionHeader}} headerContentProps={{renderHeaderContent:(open)=> <p>Section 1</p>}}>
+          <AccordionTree singleOpen openedItems={openedItems}>
+            <AccordionTree.Item title="Section1" onToggleItem={onToggleAccordionItem} headerProps={{className: css.accordionHeader}} headerContentProps={{renderHeaderContent:(open)=> <p>Section 1</p>}}>
               <div>Contenuto 1</div>
             </AccordionTree.Item>
 
-            <AccordionTree.Item title="Section2" disabled
-              unmountOnClose={false} 
-              headerProps={{className: css.accordionHeader}} 
-              headerContentProps={{renderHeaderContent: (open)=><p>{'Section 2'+(open?' aperto':'')}</p> }} 
-              innerContentProps={{className:{init: css.innerContent, open: css.innerContentOpen}}}>
+            <AccordionTree.Item title="Section2" onToggleItem={onToggleAccordionItem} unmountOnClose={false} headerProps={{className: css.accordionHeader}} headerContentProps={{renderHeaderContent: (open)=><p>{'Section 2'+(open?' aperto':'')}</p> }} innerContentProps={{className:{init: css.innerContent, open: css.innerContentOpen}}}>
                 <AccordionTree singleOpen={false}>
 
                   <AccordionTree.Item title="Section2.1" unmountOnClose={false} headerContentProps={{iconProps: {position:"start",direction:'right-bottom', type:'chevron'}}}>
@@ -111,11 +114,11 @@ const App:React.FC<{}> = () => {
                 </AccordionTree>
             </AccordionTree.Item>
             
-            <AccordionTree.Item title="Section3" headerProps={{className: css.accordionHeader}} headerContentProps={{renderHeaderContent:(open)=> <p>Section 3</p>}}>
+            <AccordionTree.Item title="Section3" onToggleItem={onToggleAccordionItem} headerProps={{className: css.accordionHeader}} headerContentProps={{renderHeaderContent:(open)=> <p>Section 3</p>}}>
               <div>Contenuto 3</div>
             </AccordionTree.Item>
 
-             <AccordionTree.Item title="Section4" headerProps={{className: css.accordionHeader}} headerContentProps={{renderHeaderContent: (open)=><p>Section 4</p>}}>
+             <AccordionTree.Item title="Section4" onToggleItem={onToggleAccordionItem} headerProps={{className: css.accordionHeader}} headerContentProps={{renderHeaderContent: (open)=><p>Section 4</p>}}>
               <div>Contenuto 4</div>
             </AccordionTree.Item>
             

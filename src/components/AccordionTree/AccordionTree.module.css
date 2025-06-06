@@ -72,6 +72,20 @@
     font-size: 0.8rem;
     background-color: #FFFFFF;
 }
+
+.text {
+    text-align: left;
+    color: inherit;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.icon {
+    flex:0;
+}
   
 .innerContent {
     padding: 16px 0px 16px 16px;

@@ -125,11 +125,12 @@ export type IAccordionTreeProps = Omit<React.HTMLAttributes<HTMLDivElement>, 'ch
         | React.ReactElement<IAccordionTreeItemProps, string | React.JSXElementConstructor<typeof AccordionTree.Item>>[]
     singleOpen?: boolean
     spacing?: number
+    openedItems?: Array<HTMLDivElement>
 };
 
 const AccordionTreeBase: React.ForwardRefExoticComponent<IAccordionTreeProps & React.RefAttributes<HTMLDivElement | null>> = React.forwardRef<HTMLDivElement | null, IAccordionTreeProps>((props: IAccordionTreeProps, ref: React.ForwardedRef<HTMLDivElement | null>) => {
     // Props
-    const {children,singleOpen,spacing, ...divProps } = props;
+    const {children,singleOpen,spacing,openedItems, ...divProps } = props;
     // Context
     const {level:parentLevel,onItemHeightChange:updateParent} = React.useContext(AccordionTreeContext); // To Get Level+1
     const {parentTreeItem,parentTreeItemContent} = React.useContext(AccordionTreeItemContext); // To Get Parent Item
@@ -163,8 +164,16 @@ const AccordionTreeBase: React.ForwardRefExoticComponent<IAccordionTreeProps & R
         updateParent(parentNode,currentTotalHeight+parentOffset);
     },[spacing,openItems,heightMap,updateParent,parentTreeItem,parentTreeItemContent]);
 
+    React.useEffect(()=>{
+        if(openedItems===undefined){ return; }
+        setOpenItems(p => {
+            return new Set<HTMLDivElement>(openedItems?.filter(e=>heightMap.has(e)));
+        })
+    },[openedItems,heightMap])
+
 
     const onItemToggle = React.useCallback((element: HTMLDivElement) => {
+        if(openedItems!==undefined){ return; }
         setOpenItems(p => {
             if(p.has(element)){
                 const c = new Set<HTMLDivElement>(p);
@@ -178,7 +187,7 @@ const AccordionTreeBase: React.ForwardRefExoticComponent<IAccordionTreeProps & R
             c.add(element);
             return c;
         });
-    },[singleOpen]);
+    },[singleOpen,openedItems]);
 
     const onItemMount = React.useCallback((element:HTMLDivElement,closeHeight:number,contentHeight:number) => {
         setHeightMap(p=>new Map(p.set(element,[closeHeight,contentHeight])));
@@ -235,6 +244,7 @@ type IAccordionTreeItemInnerProps = Omit<React.HTMLAttributes<HTMLDivElement | n
     innerContentProps?: IInnerContentProps
     unmountOnClose?: boolean
     closeDelay?: number
+    onToggleItem?: (open:boolean, ref:HTMLDivElement) => void
 };
 
 // Header Props
@@ -248,7 +258,7 @@ export type IInnerContentProps = Omit<React.HTMLAttributes<HTMLDivElement | null
 
 const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInnerProps & React.RefAttributes<HTMLDivElement | null>> = React.forwardRef<HTMLDivElement | null, IAccordionTreeItemInnerProps>((props: IAccordionTreeItemInnerProps, ref: React.ForwardedRef<HTMLDivElement | null>) => {
     // Props
-    const {children,disabled,headerProps,headerContentProps,contentProps,innerContentProps,closeDelay,unmountOnClose, ...divProps } = props;
+    const {children,disabled,headerProps,headerContentProps,contentProps,innerContentProps,closeDelay,unmountOnClose,onToggleItem:onToggleItemEventHandler, ...divProps } = props;
     // Context
     const {onItemToggle,onItemMount,onItemUnmount,onItemHeightChange,spacing,openItems,heightMap} = React.useContext<AccordionTreeContextType>(AccordionTreeContext);
     // States
@@ -322,8 +332,9 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
         headerProps?.onClick?.(event);
         if(wRef.current===null){ return; } 
         if(isAnimate.current){ return; }
-        onItemToggle(wRef.current);
-    },[onItemToggle,headerProps])
+        onItemToggle(wRef.current); // Parent Accordion context method
+        onToggleItemEventHandler?.(isOpen,wRef.current) // User external props for controlled behavior
+    },[onToggleItemEventHandler,onItemToggle,headerProps,isOpen])
 
     const ctx:AccordionTreeItemContextType = React.useMemo<AccordionTreeItemContextType>(()=>{
         return {
