@@ -16,8 +16,11 @@ const App:React.FC<{}> = () => {
   }, []);
 
   const onToggleAccordionItem = (open:boolean,ref:HTMLDivElement)=>{
+    // setOpenedItems(p=>{
+    //   return !open ? [...p, ref] : p.filter(e=>e!==ref)
+    // })
     setOpenedItems(p=>{
-      return !open ? [...p, ref] : p.filter(e=>e!==ref)
+      return !open ? [ref] : []
     })
   }
 
