@@ -1,7 +1,9 @@
+/* Accordion */
 .accordionGroup {
     width: 100%;
 }
   
+/* Accordion Item */
  .accordion {
     transition: padding 0.3s ease;
     height: auto;
@@ -24,18 +26,19 @@
     padding-bottom: 0px !important; 
 }
 
+/* Accordion Item Header Button */
 .header {
     display: flex;
     justify-content: flex-start;
     align-items: center;
-    gap: 1rem;
+    gap: 0.5rem;
     width: 100%;
     background-color: #f9f9f9;
     position: relative;
-    padding: 0.9rem;
+    padding: 0.7rem;
     border: 0;
     margin:0;
-    font-size: 0.8rem;
+    font-size: 0.7rem;
     font-weight: bold;
     cursor: pointer;
     z-index: 0;
@@ -63,16 +66,7 @@
     transition: none !important;
 }
 
-.content {
-    overflow: hidden;
-    margin:0;
-    padding:0;
-    border:0;
-    transition: max-height 0.3s ease;
-    font-size: 0.8rem;
-    background-color: #FFFFFF;
-}
-
+/* Accordion Item Header Icon and Text */
 .text {
     text-align: left;
     color: inherit;
@@ -86,7 +80,19 @@
 .icon {
     flex:0;
 }
-  
+
+/* Accordion Item Content (height limiter)*/
+.content {
+    overflow: hidden;
+    margin:0;
+    padding:0;
+    border:0;
+    transition: max-height 0.3s ease;
+    font-size: 0.8rem;
+    background-color: #FFFFFF;
+}
+
+/* Accordion Item Inner Content for opacity animation*/
 .innerContent {
     padding: 16px 0px 16px 16px;
     background-color: #fff;

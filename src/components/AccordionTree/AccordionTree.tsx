@@ -252,7 +252,7 @@ type IAccordionTreeItemInnerProps = Omit<React.HTMLAttributes<HTMLDivElement | n
 };
 
 // Header Props
-export type IHeaderProps = Omit<React.HTMLAttributes<HTMLButtonElement | null>, 'children'|'title'|'ref'|'disabled'>;
+export type IHeaderProps = Omit<React.HTMLAttributes<HTMLButtonElement | null>, 'children'|'title'|'ref'|'disabled'|'className'> & {className: {init: string, open: string }};;
 export type IHeaderContentProps        = { renderHeaderContent?:    never   , iconProps: Omit<IRotatingIconProps,'isOpen'> & {position:'start'|'end'} }
 export type IHeaderContentRenderProps  = { renderHeaderContent: (open:boolean) => JSX.Element , iconProps?: never }
 // Content Props
@@ -379,7 +379,7 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
         <AccordionTreeItemContext.Provider value={ctx}>
             <div {...divProps} ref={onInitOrDestroyEventHandler} className={`${css.accordion} ${divProps.className ?? ''} ${isOpen ? `${css.accordionOpen}` : ''}`} style={{...divProps.style ?? {}, padding:isOpen ? `${spacing}px 0px` : 0}}>
 
-                <button {...headerProps ?? {}} disabled={disabled} ref={bRef} className={`${css.header} ${headerProps?.className ?? ''}`} onClick={onToggleButtonClickEventHandler}>
+                <button {...headerProps ?? {}} disabled={disabled} ref={bRef} className={`${css.header} ${headerProps?.className?.init ?? ''} ${isOpen ? `${headerProps?.className?.open}` : ''}`} onClick={onToggleButtonClickEventHandler}>
                     {
                         headerContentProps?.renderHeaderContent===undefined
                             ?  

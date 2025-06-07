@@ -92,6 +92,10 @@
 .accordionHeader {
     background-color: rgb(249, 253, 237) !important;
 }
+.accordionHeaderOpen {
+    background-color: rgb(241, 253, 237) !important;
+    box-shadow: none !important;
+}
 @media (hover: hover) and (pointer: fine) {
     .accordionHeader:hover {
         background-color: rgb(241, 253, 237) !important;
