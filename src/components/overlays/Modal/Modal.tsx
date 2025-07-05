@@ -1,7 +1,7 @@
 import ReactDOM from 'react-dom';
 import css from './Modal.module.css';
 import React from "react";
-import FocusTrap from '../FocusTrap/FocusTrap';
+import FocusTrap from '../../behavior/FocusTrap/FocusTrap';
 
 export type IModalProps = Omit<React.HTMLAttributes<HTMLDivElement|null>,'children'|'className'> & { 
     children: Array<React.ReactElement<unknown,string|React.JSXElementConstructor<unknown>>>

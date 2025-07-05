@@ -1,11 +1,11 @@
 import React, { Fragment } from 'react';
-import Scroller from './components/Scroller/Scroller';
-import Splitter from './components/Splitter/Splitter';
+import Scroller from './components/layout/Scroller/Scroller';
+import Splitter from './components/layout/Splitter/Splitter';
 import css from './App.module.css'
-import BurgerButton from './components/BurgerButton/BurgerButton';
-import Navbar from './components/Navbar/Navbar';
-import { Modal } from './components/Modal/Modal';
-import AccordionTree from './components/AccordionTree/AccordionTree';
+import BurgerButton from './components/ui/BurgerButton/BurgerButton';
+import Navbar from './components/layout/Navbar/Navbar';
+import { Modal } from './components/overlays/Modal/Modal';
+import AccordionTree from './components/layout/AccordionTree/AccordionTree';
 
 const App:React.FC<{}> = () => {
 
@@ -39,7 +39,7 @@ const App:React.FC<{}> = () => {
         <div style={{backgroundColor:'#EEEEFF', width:'100%', height:'100%',overflow:'auto'}}>
           <br></br>
           <br></br>
-          <AccordionTree singleOpen openedItems={openedItems}>
+          <AccordionTree openedItems={openedItems}>
             <AccordionTree.Item title="Section1" onToggleItem={onToggleAccordionItem} headerProps={{className: {init: css.accordionHeader, open: css.accordionHeaderOpen}}} headerContentProps={{renderHeaderContent:(open)=> <p>Section 1</p>}}>
               <div>Contenuto 1</div>
             </AccordionTree.Item>

@@ -1,4 +1,4 @@
-import { FocusUtils } from '../../utils/Focus';
+import { FocusUtils } from '../../../utils/Focus';
 import css from './FocusTrap.module.css';
 import React from "react";
 
