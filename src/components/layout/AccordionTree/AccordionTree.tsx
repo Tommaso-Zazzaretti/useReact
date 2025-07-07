@@ -262,7 +262,7 @@ type IAccordionTreeItemInnerProps = Omit<React.HTMLAttributes<HTMLDivElement | n
 };
 
 // Header Props
-export type IHeaderProps = Omit<React.HTMLAttributes<HTMLButtonElement | null>, 'children'|'title'|'ref'|'disabled'|'className'> & {className: {init: string, open: string }};;
+export type IHeaderProps = Omit<React.HTMLAttributes<HTMLButtonElement | null>, 'children'|'title'|'ref'|'disabled'|'className'|'tabIndex'> & {className: {init: string, open: string }};;
 export type IHeaderContentProps        = { renderHeaderContent?:    never   , iconProps: Omit<IRotatingIconProps,'isOpen'> & {position:'start'|'end'} }
 export type IHeaderContentRenderProps  = { renderHeaderContent: (open:boolean) => JSX.Element , iconProps?: never }
 // Content Props
