@@ -42,14 +42,12 @@ type AccordionTreeItemContextType = {
     parentTreeItem: () => HTMLDivElement | null;
     parentTreeItemContent: () => HTMLDivElement | null;
     parentTreeItemOpen: boolean
-    parentTreeUnmountOnClose: boolean
 }
 
 const AccordionTreeItemContext = React.createContext<AccordionTreeItemContextType>({
     parentTreeItem: () => null,
     parentTreeItemContent: () => null,
     parentTreeItemOpen: false,
-    parentTreeUnmountOnClose: false
 
 });
 
@@ -275,7 +273,7 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
     const {children,disabled,headerProps,headerContentProps,contentProps,innerContentProps,closeDelay,unmountOnClose,onItemCreate,onItemDestroy,onToggleItem:onToggleItemEventHandler, ...divProps } = props;
     // Context
     const {onItemToggle,onItemMount,onItemUnmount,onItemHeightChange,spacing,openItems,heightMap,level} = React.useContext<AccordionTreeContextType>(AccordionTreeContext);
-    const {parentTreeItemOpen,parentTreeUnmountOnClose} = React.useContext<AccordionTreeItemContextType>(AccordionTreeItemContext);
+    const {parentTreeItemOpen} = React.useContext<AccordionTreeItemContextType>(AccordionTreeItemContext);
     // States
     const [isOpen, setIsOpen] = React.useState<boolean>(false);
     const [active, setActive] = React.useState<boolean>(false);
@@ -319,13 +317,6 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
         setContentHeight(contentHeight);
     },[openItems,heightMap])
 
-    // CONTROLLED => UNMOUNT ON CLOSE  
-    React.useEffect(()=>{
-        if(parentTreeUnmountOnClose && !parentTreeItemOpen && isOpen && onToggleItemEventHandler!==undefined && wRef.current!==null){
-            onToggleItemEventHandler(isOpen,wRef.current)
-        }
-    },[parentTreeItemOpen,parentTreeUnmountOnClose,isOpen,onToggleItemEventHandler])
-
     // ON COMPONENT MOUNT / UNMOUNT
     const onCreateRef = React.useRef<((ref:HTMLDivElement) => void)|undefined>((ref)=>onItemCreate?.(ref))
     const oDestroyRef = React.useRef<((ref:HTMLDivElement) => void)|undefined>((ref)=>onItemDestroy?.(ref))
@@ -367,9 +358,8 @@ const AccordionTreeItem: React.ForwardRefExoticComponent<IAccordionTreeItemInner
             parentTreeItem: () => wRef.current,
             parentTreeItemContent: () => cRef.current,
             parentTreeItemOpen: isOpen && (parentTreeItemOpen || level===0),
-            parentTreeUnmountOnClose: (unmountOnClose || parentTreeUnmountOnClose)
         }
-    },[isOpen,parentTreeItemOpen,parentTreeUnmountOnClose,unmountOnClose,level])
+    },[isOpen,parentTreeItemOpen,level])
 
     // DEBUG
     // React.useLayoutEffect(()=>{

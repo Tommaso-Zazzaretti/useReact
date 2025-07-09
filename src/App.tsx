@@ -15,13 +15,21 @@ const App:React.FC<{}> = () => {
     scrollerRef.scrollTo({top,left});
   }, []);
 
-  const onToggleAccordionItem = (open:boolean,ref:HTMLDivElement)=>{
+  const onToggleAccordionItem = (isOpen:boolean,ref:HTMLDivElement)=>{
     // setOpenedItems(p=>{
-    //   return !open ? [...p, ref] : p.filter(e=>e!==ref)
+    //   return !isOpen ? [...p, ref] : p.filter(e=>e!==ref)
     // })
     setOpenedItems(p=>{
-      return !open ? [ref] : []
+      return !isOpen ? [ref] : []
     })
+  }
+
+  const openOnMount = (ref:HTMLDivElement) => {
+    onToggleAccordionItem(false,ref);
+  }
+
+  const closeOnUnmount =(ref:HTMLDivElement) => {
+    onToggleAccordionItem(true,ref);
   }
 
   React.useEffect(()=>{
@@ -50,7 +58,7 @@ const App:React.FC<{}> = () => {
             <AccordionTree.Item title="Section2" unmountOnClose={true} headerProps={{className: {init: css.accordionHeader, open: css.accordionHeaderOpen}}} headerContentProps={{renderHeaderContent: (open)=><p>{'Section 2'+(open?' aperto':'')}</p> }} innerContentProps={{className:{init: css.innerContent, open: css.innerContentOpen}}}>
                 <AccordionTree openedItems={openedItems} >
 
-                  <AccordionTree.Item title="Section2.1" unmountOnClose={false} onToggleItem={onToggleAccordionItem} headerContentProps={{iconProps: {position:"start",direction:'right-bottom', type:'chevron'}}}>
+                  <AccordionTree.Item title="Section2.1" unmountOnClose={false} onItemCreate={openOnMount} onItemDestroy={closeOnUnmount} onToggleItem={onToggleAccordionItem} headerContentProps={{iconProps: {position:"start",direction:'right-bottom', type:'chevron'}}}>
                       <AccordionTree singleOpen={false}>
 
                         <AccordionTree.Item title="Section2.1.1">
@@ -105,15 +113,15 @@ const App:React.FC<{}> = () => {
                       </AccordionTree>
                   </AccordionTree.Item>
 
-                  <AccordionTree.Item title="Section2.2" onToggleItem={onToggleAccordionItem}>
+                  <AccordionTree.Item title="Section2.2" onItemCreate={openOnMount} onItemDestroy={closeOnUnmount} onToggleItem={onToggleAccordionItem}>
                     <div>Contenuto 2.2</div>
                   </AccordionTree.Item> 
 
-                  <AccordionTree.Item title="Section2.3" onToggleItem={onToggleAccordionItem}>
+                  <AccordionTree.Item title="Section2.3" onItemCreate={openOnMount} onItemDestroy={closeOnUnmount} onToggleItem={onToggleAccordionItem}>
                     <div>Contenuto 2.3</div>
                   </AccordionTree.Item> 
                   
-                  <AccordionTree.Item title="Section2.4" onToggleItem={onToggleAccordionItem}>
+                  <AccordionTree.Item title="Section2.4" onItemCreate={openOnMount} onItemDestroy={closeOnUnmount} onToggleItem={onToggleAccordionItem}>
                     <div>Contenuto 2.4</div>
                   </AccordionTree.Item>
 
